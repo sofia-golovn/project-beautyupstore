@@ -35,7 +35,7 @@ const AdminPage = () => {
                     Admin Dashboard
                 </motion.h1>
 
-                <div className='flex justify-center mb-12'>
+                <div className='flex flex-wrap justify-center mb-12 gap-y-4'>
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
@@ -47,7 +47,7 @@ const AdminPage = () => {
                             }`}
                         >
                             <tab.icon className={`mr-2 h-4 w-4 ${activeTab === tab.id ? "text-white" : "text-[#74090A]"}`} />
-                            {tab.label}
+                            <span className="whitespace-nowrap">{tab.label}</span>
                         </button>
                     ))}
                 </div>
