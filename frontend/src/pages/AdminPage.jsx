@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 
 import AnalyticsTab from "../components/AnalyticsTab";
 import CreateProductForm from "../components/CreateProductForm";
+import EditProductForm from "../components/EditProductForm"; 
 import ProductsList from "../components/ProductsList";
 import UsersManager from "../components/UsersManager"; 
 import { useProductStore } from "../stores/useProductStore";
@@ -17,6 +18,7 @@ const tabs = [
 
 const AdminPage = () => {
     const [activeTab, setActiveTab] = useState("create");
+    const [editingProduct, setEditingProduct] = useState(null);
     const { fetchAllProducts } = useProductStore();
 
     useEffect(() => {
@@ -39,7 +41,10 @@ const AdminPage = () => {
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => {
+                                setActiveTab(tab.id);
+                                setEditingProduct(null);
+                            }}
                             className={`flex items-center px-6 py-2 mx-2 rounded-md transition-all duration-200 font-medium text-sm tracking-wide ${
                                 activeTab === tab.id
                                     ? "bg-[#74090A] text-white shadow-md"
@@ -54,7 +59,18 @@ const AdminPage = () => {
 
                 <div className="bg-white rounded-lg">
                     {activeTab === "create" && <CreateProductForm />}
-                    {activeTab === "products" && <ProductsList />}
+                    
+                    {activeTab === "products" && (
+                        editingProduct ? (
+                            <EditProductForm 
+                                product={editingProduct} 
+                                onCancel={() => setEditingProduct(null)} 
+                            />
+                        ) : (
+                            <ProductsList onEdit={setEditingProduct} />
+                        )
+                    )}
+
                     {activeTab === "users" && <UsersManager />}
                     {activeTab === "analytics" && <AnalyticsTab />}
                 </div>

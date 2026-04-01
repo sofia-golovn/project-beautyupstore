@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { Trash, Star } from "lucide-react";
+import { Trash, Star, Edit } from "lucide-react"; 
 import { useProductStore } from "../stores/useProductStore";
 
-const ProductsList = () => {
+const ProductsList = ({ onEdit }) => { 
     const { deleteProduct, toggleFeaturedProduct, products } = useProductStore();
 
     return (
@@ -72,12 +72,21 @@ const ProductsList = () => {
                                     </button>
                                 </td>
                                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
-                                    <button
-                                        onClick={() => deleteProduct(product._id)}
-                                        className='text-gray-400 hover:text-[#74090A] transition-colors p-1.5 rounded-md hover:bg-red-50'
-                                    >
-                                        <Trash className='h-4 w-4' />
-                                    </button>
+                                    <div className='flex items-center gap-3'>
+                                        <button
+                                            onClick={() => onEdit(product)}
+                                            className='text-gray-400 hover:text-blue-500 transition-colors p-1.5 rounded-md hover:bg-blue-50'
+                                        >
+                                            <Edit className='h-4 w-4' />
+                                        </button>
+
+                                        <button
+                                            onClick={() => deleteProduct(product._id)}
+                                            className='text-gray-400 hover:text-[#74090A] transition-colors p-1.5 rounded-md hover:bg-red-50'
+                                        >
+                                            <Trash className='h-4 w-4' />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

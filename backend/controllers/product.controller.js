@@ -151,3 +151,49 @@ async function updateFeaturedProductsCache() {
 		console.log("error in update cache function");
 	}
 }
+
+export const updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, price, image, category } = req.body;
+
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        let imageUrl = product.image;
+
+        if (image && image !== product.image) {
+            if (product.image) {
+                const publicId = product.image.split("/").pop().split(".")[0];
+                try {
+                    await cloudinary.uploader.destroy(`products/${publicId}`);
+                } catch (error) {
+                    console.log("Error deleting old image from Cloudinary", error);
+                }
+            }
+
+            const cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
+            imageUrl = cloudinaryResponse.secure_url;
+        }
+
+        product.name = name || product.name;
+        product.description = description || product.description;
+        product.price = price || product.price;
+        product.category = category || product.category;
+        product.image = imageUrl;
+
+        const updatedProduct = await product.save();
+
+        if (updatedProduct.isFeatured) {
+            await updateFeaturedProductsCache();
+        }
+
+        res.json(updatedProduct);
+    } catch (error) {
+        console.log("Error in updateProduct controller", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

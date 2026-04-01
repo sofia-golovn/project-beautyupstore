@@ -45,7 +45,7 @@ const HomePage = () => {
                     </p>
 
                     <Link
-                        to="/collection"
+                        to="/category"
                         className="font-sans bg-[#74090A] text-white text-[10px] font-medium 
                         tracking-[0.4em] px-12 py-4 rounded-sm hover:bg-black transition-all duration-500"
                     >
