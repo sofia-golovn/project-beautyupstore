@@ -12,12 +12,78 @@ export const useCartStore = create(
             subtotal: 0,
             isCouponApplied: false,
 
+            getCartItems: async () => {
+                try {
+                    const res = await axios.get("/cart");
+                    if (res.data) {
+                        set({ cart: res.data });
+                        get().calculateTotals();
+                    }
+                } catch (error) {
+                    console.log("Work with local shopping cart data");
+                    get().calculateTotals();
+                }
+            },
+
+            addToCart: async (product) => {
+                try {
+                    await axios.post("/cart", { productId: product._id });
+                    toast.success("The product has been added to the cart");
+                } catch (error) {
+                    console.log("Added locally (user not authorized)");
+                }
+
+                set((prevState) => {
+                    const existingItem = prevState.cart.find((item) => item._id === product._id);
+                    const newCart = existingItem
+                        ? prevState.cart.map((item) =>
+                              item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
+                          )
+                        : [...prevState.cart, { ...product, quantity: 1 }];
+                    return { cart: newCart };
+                });
+                get().calculateTotals();
+            },
+
+            removeFromCart: async (productId) => {
+                try {
+                    await axios.delete(`/cart`, { data: { productId } });
+                } catch (error) {
+                    console.log("Deleted locally");
+                }
+
+                set((prevState) => ({
+                    cart: prevState.cart.filter((item) => item._id !== productId),
+                }));
+                get().calculateTotals();
+            },
+
+            updateQuantity: async (productId, quantity) => {
+                if (quantity <= 0) {
+                    get().removeFromCart(productId);
+                    return;
+                }
+
+                try {
+                    await axios.put(`/cart/${productId}`, { quantity });
+                } catch (error) {
+                    console.log("Quantity updated locally");
+                }
+
+                set((prevState) => ({
+                    cart: prevState.cart.map((item) =>
+                        item._id === productId ? { ...item, quantity } : item
+                    ),
+                }));
+                get().calculateTotals();
+            },
+
             getMyCoupon: async () => {
                 try {
                     const response = await axios.get("/coupons");
                     set({ coupon: response.data });
                 } catch (error) {
-                    console.error("Error fetching coupon:", error);
+                    console.error("An error occurred when receiving the coupon", error);
                 }
             },
 
@@ -26,9 +92,9 @@ export const useCartStore = create(
                     const response = await axios.post("/coupons/validate", { code });
                     set({ coupon: response.data, isCouponApplied: true });
                     get().calculateTotals();
-                    toast.success("Coupon applied successfully");
+                    toast.success("Coupon applied!");
                 } catch (error) {
-                    toast.error(error.response?.data?.message || "Failed to apply coupon");
+                    toast.error(error.response?.data?.message || "Invalid coupon");
                 }
             },
 
@@ -38,77 +104,31 @@ export const useCartStore = create(
                 toast.success("Coupon removed");
             },
 
-            getCartItems: async () => {
-                try {
-                    const res = await axios.get("/cart");
-                    set({ cart: res.data });
-                    get().calculateTotals();
-                } catch (error) {
-                    console.log("Using local cart data");
+            calculateTotals: () => {
+                const { cart, coupon } = get();
+                const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+                let total = subtotal;
+
+                if (coupon && subtotal > 0) {
+                    const discount = subtotal * (coupon.discountPercentage / 100);
+                    total = subtotal - discount;
                 }
+
+                set({ subtotal, total });
             },
 
-			// Clearing ONLY the local state (for changing the account)
             resetCart: () => {
                 set({ cart: [], coupon: null, total: 0, subtotal: 0, isCouponApplied: false });
             },
 
-            addToCart: async (product) => {
-                try {
-                    await axios.post("/cart", { productId: product._id });
-                    set((prevState) => {
-                        const existingItem = prevState.cart.find((item) => item._id === product._id);
-                        const newCart = existingItem
-                            ? prevState.cart.map((item) =>
-                                  item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
-                              )
-                            : [...prevState.cart, { ...product, quantity: 1 }];
-                        return { cart: newCart };
-                    });
-                    get().calculateTotals();
-                    toast.success("Product added to cart");
-                } catch (error) {
-                    toast.error("An error occurred");
-                }
-            },
-
-            removeFromCart: async (productId) => {
-                await axios.delete(`/cart`, { data: { productId } });
-                set((prevState) => ({ cart: prevState.cart.filter((item) => item._id !== productId) }));
-                get().calculateTotals();
-            },
-
-            updateQuantity: async (productId, quantity) => {
-                if (quantity === 0) {
-                    get().removeFromCart(productId);
-                    return;
-                }
-                await axios.put(`/cart/${productId}`, { quantity });
-                set((prevState) => ({
-                    cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
-                }));
-                get().calculateTotals();
-            },
-
-            calculateTotals: () => {
-                const { cart, coupon } = get();
-                const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-                let total = subtotal;
-                if (coupon) {
-                    const discount = subtotal * (coupon.discountPercentage / 100);
-                    total = subtotal - discount;
-                }
-                set({ subtotal, total });
-            },
+            clearCart: async () => {
+                set({ cart: [], coupon: null, total: 0, subtotal: 0, isCouponApplied: false });
+            }
         }),
         {
             name: "cart-storage",
             storage: createJSONStorage(() => localStorage),
-            partialize: (state) => ({ 
-                cart: state.cart, 
-                coupon: state.coupon, 
-                isCouponApplied: state.isCouponApplied 
-            }),
+            partialize: (state) => ({ cart: state.cart }),
         }
     )
 );

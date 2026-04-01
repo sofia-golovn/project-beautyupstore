@@ -12,7 +12,7 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const isAdmin = user?.role === "admin";
 
-    const cartItemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+    const cartItemsCount = cart.length;
 
     const isActive = (path) => location.pathname === path;
 
@@ -75,15 +75,14 @@ const Navbar = () => {
                         
                         {user ? (
                             <button 
-                                className="text-gray-900 hover:text-[#A3090A] transition-colors" 
-                                onClick={() => { 
-                                    logout(); 
-                                    resetCart(); 
-                                    if(isMenuOpen) toggleMenu(); 
-                                }}
-                            >
-                                <LogOut size={22} />
-                            </button>
+                            onClick={() => { 
+                                logout(); 
+                                resetCart(); 
+                                if(isMenuOpen) toggleMenu(); 
+                            }}
+                        >
+                            <LogOut size={22} />
+                        </button>
                         ) : (
                             <Link to="/login" className="text-gray-900 hover:text-[#A3090A]">
                                 <User size={22} />

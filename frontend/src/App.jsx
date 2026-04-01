@@ -8,22 +8,30 @@ import AdminPage from "./pages/AdminPage";
 import AboutPage from "./pages/AboutPage";
 import CategoryPage from "./pages/CategoryPage";
 import ContactPage from "./pages/ContactPage";
+import CartPage from "./pages/CartPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 import { Toaster } from "react-hot-toast";
 import { useUserStore } from "./stores/useUserStore";
-import CartPage from "./pages/CartPage";
+import { useCartStore } from "./stores/useCartStore";
 import LoadingSpinner from "./components/LoadingSpinner";
 
 function App() {
   const { user, checkAuth, checkingAuth } = useUserStore();
+  const { getCartItems } = useCartStore(); 
   const location = useLocation();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    if (user) {
+      getCartItems();
+    }
+  }, [user, getCartItems]);
   
   if (checkingAuth) return <LoadingSpinner />;
 
@@ -40,14 +48,20 @@ function App() {
             <Route path='/' element={<HomePage />} />
             <Route path='/about' element={<AboutPage />} />
             <Route path='/contact' element={<ContactPage />} />
+            
             <Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
             <Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
+            
             <Route
               path='/secret-dashboard'
               element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}
             />
+            
             <Route path='/category/:category?' element={<CategoryPage />} />
-					  <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
+            
+            <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
+            
+            <Route path='*' element={<Navigate to='/' />} />
           </Routes>
         </div>
       </div>
