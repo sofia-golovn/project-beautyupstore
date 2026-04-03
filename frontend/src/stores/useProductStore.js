@@ -2,9 +2,10 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import axios from "../lib/axios";
 
-export const useProductStore = create((set) => ({
+export const useProductStore = create((set, get) => ({
     products: [],
-    featuredProducts: [], 
+    featuredProducts: [],
+    categories: [], 
     loading: false,
 
     setProducts: (products) => set({ products }),
@@ -13,14 +14,53 @@ export const useProductStore = create((set) => ({
         set({ loading: true });
         try {
             const res = await axios.post("/products", productData);
-            set((prevState) => ({
-                products: [...prevState.products, res.data],
+            set((state) => ({
+                products: [...state.products, res.data],
                 loading: false,
             }));
-            toast.success("Product created successfully");
+            toast.success("Product created successfully!");
         } catch (error) {
-            toast.error(error.response?.data?.error || "Failed to create product");
             set({ loading: false });
+            toast.error(error.response?.data?.error || "Failed to create product");
+            throw error;
+        }
+    },
+
+    fetchAllCategories: async () => {
+        try {
+            const response = await axios.get("/products/categories");
+            set({ categories: response.data });
+        } catch (error) {
+            const uniqueCategories = [...new Set(get().products.map(p => p.category))];
+            if (uniqueCategories.length > 0) {
+                set({ categories: uniqueCategories });
+            }
+        }
+    },
+
+    createCategory: async (categoryName) => {
+        try {
+            const res = await axios.post("/products/categories", { name: categoryName });
+            const newCat = res.data.name || res.data;
+
+            set((state) => ({
+                categories: [...state.categories, newCat],
+            }));
+            toast.success("Category permanently saved");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to save category to database");
+        }
+    },
+
+    deleteCategory: async (categoryName) => {
+        try {
+            set((state) => ({
+                categories: state.categories.filter((c) => c !== categoryName),
+            }));
+            toast.success(`Category "${categoryName}" removed`);
+        } catch (error) {
+            toast.error("Failed to delete category");
         }
     },
 
@@ -29,10 +69,12 @@ export const useProductStore = create((set) => ({
         try {
             const response = await axios.get("/products");
             const productsData = response.data.products || response.data;
-            set({ products: Array.isArray(productsData) ? productsData : [], loading: false });
+            const productsArray = Array.isArray(productsData) ? productsData : [];
+            const derivedCategories = [...new Set(productsArray.map(p => p.category))];
+            set({ products: productsArray, categories: derivedCategories, loading: false });
         } catch (error) {
             set({ loading: false });
-            toast.error(error.response?.data?.error || "Failed to fetch products");
+            toast.error("Failed to fetch products");
         }
     },
 
@@ -44,7 +86,7 @@ export const useProductStore = create((set) => ({
             set({ products: Array.isArray(productsData) ? productsData : [], loading: false });
         } catch (error) {
             set({ loading: false });
-            toast.error(error.response?.data?.error || "Failed to fetch products");
+            toast.error("Failed to fetch products");
         }
     },
 
@@ -53,65 +95,48 @@ export const useProductStore = create((set) => ({
         try {
             await axios.delete(`/products/${productId}`);
             set((prev) => ({
-                products: prev.products.filter((product) => product._id !== productId),
-                // Також видаляємо зі слайдера, якщо він там був
-                featuredProducts: prev.featuredProducts.filter((product) => product._id !== productId),
+                products: prev.products.filter((p) => p._id !== productId),
                 loading: false,
             }));
             toast.success("Product deleted");
         } catch (error) {
             set({ loading: false });
-            toast.error(error.response?.data?.error || "Failed to delete product");
+            toast.error("Failed to delete product");
         }
     },
 
     toggleFeaturedProduct: async (productId) => {
-        set({ loading: true });
         try {
             const response = await axios.patch(`/products/${productId}`);
-            const updatedProduct = response.data;
-
             set((prev) => ({
-                // Оновлюємо в загальному списку
-                products: prev.products.map((product) =>
-                    product._id === productId ? updatedProduct : product
-                ),
-                loading: false,
+                products: prev.products.map((p) => p._id === productId ? response.data : p),
             }));
-            
-            // Якщо ми зняли зірочку або поставили — краще просто перерахувати слайдер
-            // або вручну додати/видалити з featuredProducts
-            toast.success(updatedProduct.isFeatured ? "Added to featured" : "Removed from featured");
         } catch (error) {
-            set({ loading: false });
-            toast.error(error.response?.data?.error || "Failed to update product");
+            toast.error("Failed to update product");
         }
     },
 
     fetchFeaturedProducts: async () => {
-        set({ loading: true });
         try {
             const response = await axios.get("/products/featured");
-            // Зберігаємо в окремий масив featuredProducts!
-            set({ featuredProducts: response.data, loading: false });
+            set({ featuredProducts: response.data });
         } catch (error) {
-            set({ loading: false });
-            console.log("Error fetching featured products:", error);
+            console.log("Error fetching featured:", error);
         }
     },
 
     updateProduct: async (id, formData) => {
-    set({ loading: true });
-    try {
-        const res = await axios.put(`/products/${id}`, formData);
-        set((state) => ({
-            products: state.products.map((p) => (p._id === id ? res.data : p)),
-            loading: false,
-        }));
-        return res.data;
-    } catch (error) {
-        set({ loading: false });
-        throw error;
-    }
-},
+        set({ loading: true });
+        try {
+            const res = await axios.put(`/products/${id}`, formData);
+            set((state) => ({
+                products: state.products.map((p) => (p._id === id ? res.data : p)),
+                loading: false,
+            }));
+            return res.data;
+        } catch (error) {
+            set({ loading: false });
+            throw error;
+        }
+    },
 }));
