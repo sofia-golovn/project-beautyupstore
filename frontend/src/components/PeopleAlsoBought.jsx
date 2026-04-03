@@ -26,9 +26,14 @@ const PeopleAlsoBought = () => {
 	if (isLoading) return <LoadingSpinner />;
 
 	return (
-		<div className='mt-8'>
-			<h3 className='text-2xl font-semibold text-[#74090A]'>People also bought</h3>
-			<div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg: grid-col-3'>
+		<div>
+			<span className="text-[9px] uppercase tracking-[0.3em] text-[#74090A] font-bold mb-2 block">
+				You may also like
+			</span>
+			<h3 className="text-lg md:text-xl font-light text-neutral-900 font-serif tracking-tight">
+				People also bought
+			</h3>
+			<div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
 				{recommendations.map((product) => (
 					<ProductCard key={product._id} product={product} />
 				))}

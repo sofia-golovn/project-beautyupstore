@@ -13,10 +13,10 @@ export const useWishlistStore = create(
 
                 if (isExists) {
                     set({ wishlist: wishlist.filter((item) => item._id !== product._id) });
-                    toast.success("Видалено зі списку бажань");
+                    toast.success("Removed from wish list");
                 } else {
                     set({ wishlist: [...wishlist, product] });
-                    toast.success("Додано до списку бажань");
+                    toast.success("Added to wish list");
                 }
             },
 

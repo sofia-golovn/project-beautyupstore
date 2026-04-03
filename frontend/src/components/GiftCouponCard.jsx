@@ -30,16 +30,18 @@ const GiftCouponCard = () => {
 
     return (
         <motion.div
-            className='space-y-6 rounded-[32px] border border-neutral-100 bg-neutral-50/30 p-6 shadow-sm sm:p-8'
+            className="space-y-6 rounded-[18px] border border-neutral-100 bg-white p-6 shadow-sm sm:p-7"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
         >
-            <div className='space-y-4'>
+            <div className="space-y-4">
                 <div>
-					<label htmlFor='voucher' className='mb-3 block text-[10px] uppercase tracking-[0.2em] 
-					font-bold text-[#74090A]'>
-                        Voucher or Gift Card
+                    <label
+                        htmlFor="voucher"
+                        className="mb-2 block text-[9px] uppercase tracking-[0.3em] font-bold text-[#74090A]"
+                    >
+                        Voucher or gift card
                     </label>
                     <input
                         type='text'
@@ -55,8 +57,8 @@ const GiftCouponCard = () => {
                 </div>
 
                 <motion.button
-                    type='button'
-                    className='flex w-full items-center justify-center rounded-xl bg-[#74090A] px-10 py-3.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white hover:bg-neutral-800 transition-all duration-300 shadow-sm'
+                    type="button"
+                    className="flex w-full items-center justify-center rounded-lg bg-[#74090A] px-8 py-3 text-[9px] font-bold uppercase tracking-widest text-white hover:bg-[#4F0608] transition-all duration-300 shadow-sm active:scale-[0.98]"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleApplyCoupon}
