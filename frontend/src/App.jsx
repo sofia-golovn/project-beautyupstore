@@ -9,6 +9,7 @@ import AboutPage from "./pages/AboutPage";
 import CategoryPage from "./pages/CategoryPage";
 import ContactPage from "./pages/ContactPage";
 import CartPage from "./pages/CartPage";
+import WishlistPage from "./pages/WishlistPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -58,7 +59,7 @@ function App() {
             />
             
             <Route path='/category/:category?' element={<CategoryPage />} />
-            
+            <Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login'  />} />
             <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
             
             <Route path='*' element={<Navigate to='/' />} />

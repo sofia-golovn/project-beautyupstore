@@ -1,8 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShoppingBag, Tag } from "lucide-react";
+import { X, ShoppingBag, Heart } from "lucide-react";
+import { useWishlistStore } from "../stores/useWishlistStore";
 
 const ProductModal = ({ product, isOpen, onClose, onAddToCart }) => {
     if (!product) return null;
+
+    const { toggleWishlist, isInWishlist } = useWishlistStore();
+    const isFavorite = isInWishlist(product._id);
 
     return (
         <AnimatePresence>
@@ -20,16 +24,18 @@ const ProductModal = ({ product, isOpen, onClose, onAddToCart }) => {
                         initial={{ opacity: 0, scale: 0.95, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        className="relative w-full max-w-2xl bg-white rounded-[32px] overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
+                        className="relative w-full max-w-2xl bg-white rounded-[32px] overflow-hidden 
+                        shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
                     >
                         <button 
                             onClick={onClose}
-                            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 hover:bg-[#74090A] hover:text-white transition-all shadow-sm"
+                            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 
+                            hover:bg-[#74090A] hover:text-white transition-all shadow-sm"
                         >
                             <X size={18} />
                         </button>
 
-                        <div className="md:w-2/5 min-h-[300px] md:h-auto bg-neutral-50">
+                        <div className="md:w-2/5 min-h-[300px] md:h-auto bg-neutral-50 relative">
                             <img 
                                 src={product.image} 
                                 alt={product.name}
@@ -39,7 +45,8 @@ const ProductModal = ({ product, isOpen, onClose, onAddToCart }) => {
 
                         <div className="md:w-3/5 p-6 md:p-10 flex flex-col">
                             <div className="flex items-center gap-2 mb-3">
-                                <span className="text-[9px] uppercase tracking-[0.2em] text-[#74090A] font-bold px-2 py-0.5 border border-[#74090A]/20 rounded-full">
+                                <span className="text-[9px] uppercase tracking-[0.2em] 
+                                text-[#74090A] font-bold px-2 py-0.5 border border-[#74090A]/20 rounded-full">
                                     {product.category}
                                 </span>
                             </div>
@@ -54,24 +61,49 @@ const ProductModal = ({ product, isOpen, onClose, onAddToCart }) => {
                                 </p>
                             </div>
 
-                            <div className="mt-auto pt-6 border-t border-neutral-100 flex items-center justify-between">
+                            <div className="mt-auto pt-6 border-t border-neutral-100 flex 
+                            items-center justify-between">
                                 <div>
-                                    <span className="text-[10px] text-neutral-400 block uppercase tracking-widest">Price</span>
+                                    <span className="text-[10px] text-neutral-400 block 
+                                    uppercase tracking-widest">Price</span>
                                     <span className="text-xl font-medium text-neutral-900">${product.price}</span>
                                 </div>
 
-                                <motion.button
-                                    whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={() => {
-                                        onAddToCart(product);
-                                        onClose();
-                                    }}
-                                    className="flex items-center gap-2 bg-[#74090A] text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-colors shadow-md"
-                                >
-                                    <ShoppingBag size={14} />
-                                    Add
-                                </motion.button>
+                                <div className="flex items-center gap-3">
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleWishlist(product);
+                                        }}
+                                        className={`p-3 rounded-full border transition-all duration-300 ${
+                                            isFavorite 
+                                            ? "bg-[#74090A]/10 border-[#74090A]/20 text-[#74090A]" 
+                                            : "bg-neutral-50 border-neutral-200 text-neutral-400 hover:text-[#74090A] hover:bg-neutral-100"
+                                        }`}
+                                    >
+                                        <Heart 
+                                            size={20} 
+                                            className={isFavorite ? "fill-[#74090A]" : "fill-none"} 
+                                        />
+                                    </motion.button>
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.03 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={() => {
+                                            onAddToCart(product);
+                                            onClose();
+                                        }}
+                                        className="flex items-center gap-2 bg-[#74090A] text-white px-6 
+                                        py-3 rounded-full text-[10px] font-bold uppercase tracking-widest 
+                                        hover:bg-black transition-colors shadow-md"
+                                    >
+                                        <ShoppingBag size={14} />
+                                        Add to Cart
+                                    </motion.button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>

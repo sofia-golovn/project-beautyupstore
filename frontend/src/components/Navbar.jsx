@@ -1,18 +1,23 @@
 import { useState } from "react";
 import { ShoppingCart, User, LogOut, Lock, Search, Heart, Menu, X } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
+
 import { useUserStore } from "../stores/useUserStore";
 import { useCartStore } from "../stores/useCartStore"; 
+import { useWishlistStore } from "../stores/useWishlistStore";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
     const location = useLocation();
     const { user, logout } = useUserStore();
     const { cart, resetCart } = useCartStore(); 
+    const { wishlist } = useWishlistStore();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const isAdmin = user?.role === "admin";
 
     const cartItemsCount = cart.length;
+    const wishlistItemsCount = wishlist.length;
 
     const isActive = (path) => location.pathname === path;
 
@@ -23,8 +28,17 @@ const Navbar = () => {
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
+    const badgeVariants = {
+        initial: { scale: 0.8, opacity: 0 },
+        animate: { scale: 1, opacity: 1 },
+        transition: { type: "spring", stiffness: 500, damping: 25 }
+    };
+
+    const badgeClassName = "absolute -top-2 -right-2 bg-[#74090A] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-sm border border-white/10";
+
     return (
-        <header className='fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-40 transition-all duration-300 border-b border-gray-100'> 
+        <header className='fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-40 
+        transition-all duration-300 border-b border-gray-100'> 
             <div className='container mx-auto px-6 py-4'>
                 <div className='flex justify-between items-center'>
                     
@@ -48,18 +62,25 @@ const Navbar = () => {
                         
                         {user && (
                             <>
-                                <Link to={"/wishlist"} className="text-gray-900 hover:text-[#A3090A] relative">
+                                <Link to={"/wishlist"} className="text-gray-900 hover:text-[#A3090A] 
+                                relative transition-colors">
                                     <Heart size={22} />
-                                    <span className='absolute -top-2 -right-2 bg-[#74090A] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full'>0</span>
+                                    <motion.span 
+                                        key={`wishlist-${wishlistItemsCount}`}
+                                        {...badgeVariants}
+                                        className={badgeClassName}
+                                    >
+                                        {wishlistItemsCount}
+                                    </motion.span>
                                 </Link>
                                 
-                                <Link to={"/cart"} className="text-gray-900 hover:text-[#A3090A] relative">
+                                <Link to={"/cart"} className="text-gray-900 hover:text-[#A3090A] 
+                                relative transition-colors">
                                     <ShoppingCart size={22} />
                                     <motion.span 
-                                        key={cartItemsCount}
-                                        initial={{ scale: 0.8, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        className='absolute -top-2 -right-2 bg-[#74090A] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-sm'
+                                        key={`cart-${cartItemsCount}`}
+                                        {...badgeVariants}
+                                        className={badgeClassName}
                                     >
                                         {cartItemsCount}
                                     </motion.span>
@@ -68,28 +89,32 @@ const Navbar = () => {
                         )}
 
                         {isAdmin && (
-                            <Link className='hidden md:flex bg-[#74090A] text-white px-4 py-2 rounded-md hover:bg-[#5a0708] transition duration-300 items-center gap-1 font-medium' to={"/secret-dashboard"}>
+                            <Link className='hidden md:flex bg-[#74090A] text-white px-4 py-2 rounded-md 
+                            hover:bg-[#5a0708] transition duration-300 items-center gap-1 font-medium shadow-sm'
+                                to={"/secret-dashboard"}>
                                 <Lock size={18} /> Dashboard
                             </Link>
                         )}
                         
                         {user ? (
                             <button 
-                            onClick={() => { 
-                                logout(); 
-                                resetCart(); 
-                                if(isMenuOpen) toggleMenu(); 
-                            }}
-                        >
-                            <LogOut size={22} />
-                        </button>
+                                className="text-gray-900 hover:text-[#A3090A] transition"
+                                onClick={() => { 
+                                    logout(); 
+                                    resetCart(); 
+                                    if(isMenuOpen) toggleMenu(); 
+                                }}
+                            >
+                                <LogOut size={22} />
+                            </button>
                         ) : (
-                            <Link to="/login" className="text-gray-900 hover:text-[#A3090A]">
+                            <Link to="/login" className="text-gray-900 hover:text-[#A3090A] transition">
                                 <User size={22} />
                             </Link>
                         )}
 
-                        <button className='md:hidden text-gray-900 p-1' onClick={toggleMenu}>
+                        <button className='md:hidden text-gray-900 p-1 hover:text-[#A3090A] transition'
+                            onClick={toggleMenu}>
                             {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
                         </button>
                     </div>
@@ -102,7 +127,8 @@ const Navbar = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className='md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-xl font-sans overflow-hidden'
+                        className='md:hidden absolute top-full left-0 w-full bg-white border-b 
+                        border-gray-100 shadow-xl font-sans overflow-hidden'
                     >
                         <div className='flex flex-col p-6 gap-6'>
                             <nav className="flex flex-col gap-4 text-lg">
@@ -115,7 +141,8 @@ const Navbar = () => {
                             {isAdmin && (
                                 <>
                                     <hr className="border-gray-100" />
-                                    <Link to="/secret-dashboard" onClick={toggleMenu} className="flex items-center gap-2 text-[#74090A] font-bold tracking-wide">
+                                    <Link to="/secret-dashboard" onClick={toggleMenu}
+                                        className="flex items-center gap-2 text-[#74090A] font-bold tracking-wide">
                                         <Lock size={18} /> Admin Dashboard
                                     </Link>
                                 </>
