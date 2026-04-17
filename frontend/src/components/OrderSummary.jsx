@@ -36,12 +36,12 @@ const OrderSummary = () => {
 
     return (
         <motion.div
-            className='space-y-6 rounded-[32px] border border-neutral-100 bg-neutral-50/30 p-6 shadow-sm sm:p-8'
+            className="space-y-6 rounded-[18px] border border-neutral-100 bg-white p-6 shadow-sm sm:p-7"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <h3 className='mb-3 block text-[10px] uppercase tracking-[0.2em] font-bold text-[#74090A]'>
+            <h3 className="mb-1 block text-[9px] uppercase tracking-[0.3em] font-bold text-[#74090A]">
                 Order summary
             </h3>
 
@@ -74,7 +74,9 @@ const OrderSummary = () => {
 
                 <div className="pt-4 space-y-4">
                     <motion.button
-                        className='flex w-full items-center justify-center rounded-xl bg-[#74090A] px-10 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white hover:bg-[#5b0708] transition-all duration-500 shadow-md hover:shadow-xl focus:outline-none'
+                        className="flex w-full items-center justify-center rounded-lg bg-[#74090A] px-8 
+                        py-3.5 text-[9px] font-bold uppercase tracking-widest text-white 
+                        hover:bg-[#4F0608] transition-all duration-300 shadow-sm active:scale-[0.98] focus:outline-none"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handlePayment}
@@ -83,10 +85,11 @@ const OrderSummary = () => {
                     </motion.button>
 
                     <div className='flex items-center justify-center gap-3'>
-                        <span className='text-[10px] uppercase tracking-widest text-neutral-400'>or</span>
+                        <span className="text-[9px] uppercase tracking-widest text-neutral-400">or</span>
                         <Link
-                            to='/'
-                            className='inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-900 hover:text-[#74090A] transition-colors'
+                            to="/"
+                            className="inline-flex items-center gap-2 text-[9px] 
+                            font-bold uppercase tracking-[0.2em] text-neutral-900 hover:text-[#74090A] transition-colors"
                         >
                             Continue Shopping
                             <MoveRight size={14} />

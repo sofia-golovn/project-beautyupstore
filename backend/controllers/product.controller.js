@@ -5,8 +5,19 @@ import Category from "../models/category.model.js";
 
 export const getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find({}); 
-        res.json({ products });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const products = await Product.find({}).skip(skip).limit(limit);
+        const totalProducts = await Product.countDocuments();
+
+        res.json({ 
+            products,
+            currentPage: page,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts
+        });
     } catch (error) {
         console.log("Error in getAllProducts controller", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
@@ -111,9 +122,24 @@ export const getRecommendedProducts = async (req, res) => {
 
 export const getProductsByCategory = async (req, res) => {
     const { category } = req.params;
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 8; 
+    const skip = (page - 1) * limit;
+
     try {
-        const products = await Product.find({ category });
-        res.json({ products });
+        const products = await Product.find({ category })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalProducts = await Product.countDocuments({ category });
+
+        res.json({ 
+            products,
+            currentPage: page,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts
+        });
     } catch (error) {
         console.log("Error in getProductsByCategory controller", error.message);
         res.status(500).json({ message: "Server error", error: error.message });

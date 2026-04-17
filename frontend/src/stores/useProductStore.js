@@ -7,6 +7,10 @@ export const useProductStore = create((set, get) => ({
     featuredProducts: [],
     categories: [], 
     loading: false,
+    
+    currentPage: 1,
+    totalPages: 1,
+    totalProducts: 0,
 
     setProducts: (products) => set({ products }),
 
@@ -64,26 +68,38 @@ export const useProductStore = create((set, get) => ({
         }
     },
 
-    fetchAllProducts: async () => {
+    fetchAllProducts: async (page = 1) => {
         set({ loading: true });
         try {
-            const response = await axios.get("/products");
-            const productsData = response.data.products || response.data;
-            const productsArray = Array.isArray(productsData) ? productsData : [];
-            const derivedCategories = [...new Set(productsArray.map(p => p.category))];
-            set({ products: productsArray, categories: derivedCategories, loading: false });
+            const response = await axios.get(`/products?page=${page}&limit=10`);
+            const { products, totalPages, currentPage, totalProducts } = response.data;
+            
+            set({ 
+                products: Array.isArray(products) ? products : [], 
+                totalPages,
+                currentPage,
+                totalProducts,
+                loading: false 
+            });
         } catch (error) {
             set({ loading: false });
             toast.error("Failed to fetch products");
         }
     },
 
-    fetchProductsByCategory: async (category) => {
+    fetchProductsByCategory: async (category, page = 1) => {
         set({ loading: true });
         try {
-            const response = await axios.get(`/products/category/${category}`);
-            const productsData = response.data.products || response.data;
-            set({ products: Array.isArray(productsData) ? productsData : [], loading: false });
+            const response = await axios.get(`/products/category/${category}?page=${page}&limit=8`);
+            const { products, totalPages, currentPage, totalProducts } = response.data;
+            
+            set({ 
+                products: Array.isArray(products) ? products : [], 
+                totalPages,
+                currentPage,
+                totalProducts,
+                loading: false 
+            });
         } catch (error) {
             set({ loading: false });
             toast.error("Failed to fetch products");
