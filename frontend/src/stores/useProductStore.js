@@ -28,8 +28,8 @@ export const useProductStore = create((set, get) => ({
         }
     },
 
-    fetchAllProducts: async (page = 1, filters = {}) => {
-        set({ loading: true });
+    fetchAllProducts: async (page = 1, filters = {}, isPagination = false) => {
+        if (!isPagination) set({ loading: true });
         try {
             const { minPrice, maxPrice, sort } = filters;
             const params = new URLSearchParams({
@@ -42,11 +42,11 @@ export const useProductStore = create((set, get) => ({
 
             const response = await axios.get(`/products?${params.toString()}`);
             set({ 
-                products: response.data.products, 
-                totalPages: response.data.totalPages,
-                currentPage: response.data.currentPage,
-                loading: false 
-            });
+            products: response.data.products, 
+            totalPages: response.data.totalPages,
+            currentPage: response.data.currentPage,
+            loading: false 
+        });
         } catch (error) {
             set({ loading: false });
             toast.error("Error fetching products");

@@ -38,7 +38,7 @@ const CategoryPage = () => {
             if (max) setPriceRange(max);
         };
         loadMaxPrice();
-    }, [fetchMaxPrice]);
+    }, []); 
 
     useEffect(() => {
         const filters = {
@@ -48,22 +48,21 @@ const CategoryPage = () => {
         };
 
         const delayDebounceFn = setTimeout(() => {
+            const isPagination = currentPage > 1;
+
             if (selectedCategory === "All") {
-                fetchAllProducts(currentPage, filters);
+                fetchAllProducts(currentPage, filters, isPagination);
             } else {
-                fetchProductsByCategory(selectedCategory.toLowerCase(), currentPage, filters);
+                fetchProductsByCategory(selectedCategory.toLowerCase(), currentPage, filters, isPagination);
             }
         }, 400);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [selectedCategory, currentPage, priceRange, sortOrder, fetchAllProducts, fetchProductsByCategory]);
-
+    }, [selectedCategory, currentPage, priceRange, sortOrder]);
+    
     useEffect(() => {
-        if (urlCategory) {
-            setSelectedCategory(urlCategory);
-        } else {
-            setSelectedCategory("All");
-        }
+        const category = urlCategory || "All";
+        setSelectedCategory(category);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [urlCategory]);
 
