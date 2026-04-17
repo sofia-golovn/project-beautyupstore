@@ -4,7 +4,7 @@ import { useProductStore } from "../stores/useProductStore";
 import { useCartStore } from "../stores/useCartStore"; 
 import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal"; 
-import { Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Filter, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
 const CategoryPage = () => {
     const { category: urlCategory } = useParams();
@@ -14,31 +14,49 @@ const CategoryPage = () => {
         products, 
         fetchProductsByCategory, 
         fetchAllProducts, 
+        fetchMaxPrice,
+        maxPriceInDb,  
         loading,
         currentPage,
         totalPages 
     } = useProductStore();
     
     const { addToCart } = useCartStore(); 
-    
+
     const [selectedCategory, setSelectedCategory] = useState(urlCategory || "All");
     const [sortOrder, setSortOrder] = useState("default");
     const [priceRange, setPriceRange] = useState(200);
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const categories = ["All", "Face", "Body", "Hair", "Sun", "Accessories", "Sets"];
 
+    useEffect(() => {
+        const loadMaxPrice = async () => {
+            const max = await fetchMaxPrice();
+            if (max) setPriceRange(max);
+        };
+        loadMaxPrice();
+    }, [fetchMaxPrice]);
 
     useEffect(() => {
-        if (selectedCategory === "All") {
-            fetchAllProducts(currentPage);
-        } else {
-            fetchProductsByCategory(selectedCategory, currentPage);
-        }
-    }, [selectedCategory, currentPage, fetchAllProducts, fetchProductsByCategory]);
+        const filters = {
+            minPrice: 0,
+            maxPrice: priceRange,
+            sort: sortOrder
+        };
+
+        const delayDebounceFn = setTimeout(() => {
+            if (selectedCategory === "All") {
+                fetchAllProducts(currentPage, filters);
+            } else {
+                fetchProductsByCategory(selectedCategory.toLowerCase(), currentPage, filters);
+            }
+        }, 400);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [selectedCategory, currentPage, priceRange, sortOrder, fetchAllProducts, fetchProductsByCategory]);
 
     useEffect(() => {
         if (urlCategory) {
@@ -48,6 +66,13 @@ const CategoryPage = () => {
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [urlCategory]);
+
+    const handleResetFilters = () => {
+        setSelectedCategory("All");
+        setSortOrder("default");
+        setPriceRange(maxPriceInDb || 200);
+        navigate("/category");
+    };
 
     const handleCategoryClick = (cat) => {
         setSelectedCategory(cat);
@@ -61,9 +86,10 @@ const CategoryPage = () => {
     const handlePageChange = (page) => {
         if (page >= 1 && page <= totalPages) {
             if (selectedCategory === "All") {
-                fetchAllProducts(page);
+                fetchAllProducts(page, { minPrice: 0, maxPrice: priceRange, sort: sortOrder });
             } else {
-                fetchProductsByCategory(selectedCategory, page);
+                fetchProductsByCategory(selectedCategory.toLowerCase(), page,
+                    { minPrice: 0, maxPrice: priceRange, sort: sortOrder });
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -74,16 +100,6 @@ const CategoryPage = () => {
         setIsModalOpen(true);
     };
 
-    const processedProducts = products
-        .filter((p) => p.price <= priceRange)
-        .sort((a, b) => {
-            if (sortOrder === "az") return a.name.localeCompare(b.name);
-            if (sortOrder === "za") return b.name.localeCompare(a.name);
-            if (sortOrder === "low-high") return a.price - b.price;
-            if (sortOrder === "high-low") return b.price - a.price;
-            return 0;
-        });
-
     return (
         <div className='max-w-7xl mx-auto px-6 py-10 min-h-screen bg-white overflow-x-hidden'>
             <header className="mb-12 border-b border-neutral-50 pb-8">
@@ -93,8 +109,8 @@ const CategoryPage = () => {
                             Category
                         </span>
                         <div className="flex items-center gap-4">
-                            <h1 className="text-4xl md:text-6xl font-light tracking-tight 
-                            text-neutral-900 font-serif capitalize">
+                            <h1 className="text-4xl md:text-6xl font-light tracking-tight text-neutral-900 
+                            font-serif capitalize">
                                 {selectedCategory}
                             </h1>
                             <button 
@@ -110,10 +126,9 @@ const CategoryPage = () => {
                             </button>
                         </div>
                     </div>
-                    
                     <div className="flex items-center justify-between md:justify-end w-full md:w-auto">
                         <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase">
-                            {processedProducts.length} Products on this page
+                            {products.length} Products displayed
                         </p>
                     </div>
                 </div>
@@ -126,9 +141,19 @@ const CategoryPage = () => {
                     : "w-0 opacity-0 invisible h-0 md:h-auto overflow-hidden"
                 }`}>
                     <div className="space-y-12 pr-4 min-w-[250px] md:min-w-0">
+                        <button 
+                            onClick={handleResetFilters}
+                            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl 
+                            border border-[#74090A]/10 text-[#74090A] hover:bg-[#74090A] hover:text-white 
+                            transition-all duration-300 group"
+                        >
+                            <RotateCcw size={14} className="group-hover:rotate-[-45deg] transition-transform" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Reset All Filters</span>
+                        </button>
+
                         <div>
-                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase 
-                            mb-6 tracking-[0.15em] border-b border-neutral-50 pb-2'>
+                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase mb-6 
+                            tracking-[0.15em] border-b border-neutral-50 pb-2'>
                                 Categories
                             </h3>
                             <ul className='space-y-1'>
@@ -136,8 +161,8 @@ const CategoryPage = () => {
                                     <li key={cat}>
                                         <button
                                             onClick={() => handleCategoryClick(cat)}
-                                            className={`w-full text-left py-2 px-3 rounded-xl transition-all 
-                                                duration-300 flex justify-between items-center ${
+                                            className={`w-full text-left py-2 px-3 rounded-xl 
+                                                transition-all duration-300 flex justify-between items-center ${
                                                 selectedCategory.toLowerCase() === cat.toLowerCase() 
                                                 ? "text-[#74090A] font-bold" 
                                                 : "text-neutral-500 hover:text-black"
@@ -158,10 +183,10 @@ const CategoryPage = () => {
                             <select 
                                 value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value)}
-                                className='w-full p-3 border-b border-neutral-200 bg-transparent text-sm 
-                                text-neutral-600 outline-none focus:border-[#74090A]'
+                                className='w-full p-3 border-b border-neutral-200 bg-transparent 
+                                text-sm text-neutral-600 outline-none focus:border-[#74090A]'
                             >
-                                <option value="default">Default</option>
+                                <option value="default">Newest First</option>
                                 <option value="az">A to Z</option>
                                 <option value="za">Z to A</option>
                                 <option value="low-high">Price: Low to High</option>
@@ -171,35 +196,43 @@ const CategoryPage = () => {
 
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className='text-[10px] font-bold text-neutral-400 uppercase 
-                                tracking-[0.15em]'>Price Limit</h3>
+                                <h3 className='text-[10px] font-bold text-neutral-400 
+                                uppercase tracking-[0.15em]'>Max Price</h3>
                                 <span className="text-[#74090A] font-bold text-sm">${priceRange}</span>
                             </div>
                             <input
-                                type='range' min='0' max='200' step='1'
+                                type='range' 
+                                min='0' 
+                                max={maxPriceInDb || 500}
+                                step='1'
                                 value={priceRange}
                                 onChange={(e) => setPriceRange(Number(e.target.value))}
-                                className='w-full h-[2px] bg-neutral-100 appearance-none cursor-pointer 
-                                accent-[#74090A]'
+                                className='w-full h-[2px] bg-neutral-100 appearance-none 
+                                cursor-pointer accent-[#74090A]'
                             />
+                            <div className="flex justify-between mt-2 text-[9px] text-neutral-300 
+                            font-bold uppercase tracking-tighter">
+                                <span>$0</span>
+                                <span>Max: ${maxPriceInDb || 500}</span>
+                            </div>
                         </div>
                     </div>
                 </aside>
 
                 <main className='flex-1 w-full'>
                     {loading ? (
-                        <div className="flex justify-center py-20 text-neutral-300 animate-pulse 
-                        tracking-widest text-[10px] uppercase">
+                        <div className="flex justify-center py-20 text-neutral-300 
+                        animate-pulse tracking-widest text-[10px] uppercase">
                             Discovering beauty...
                         </div>
-                    ) : processedProducts.length > 0 ? (
+                    ) : products.length > 0 ? (
                         <>
                             <div className={`grid gap-x-8 gap-y-16 transition-all duration-500 ${
                                 isFiltersOpen 
                                 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" 
                                 : "grid-cols-1 sm:grid-cols-3 lg:grid-cols-4"
                             }`}>
-                                {processedProducts.map((product) => (
+                                {products.map((product) => (
                                     <div 
                                         key={product._id} 
                                         onClick={() => handleOpenModal(product)} 
@@ -211,51 +244,49 @@ const CategoryPage = () => {
                             </div>
 
                             {totalPages > 1 && (
-                            <div className='flex justify-center items-center mt-20 gap-4 pb-10'>
-                                <button
-                                    disabled={currentPage === 1}
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                            className='p-2 rounded-md border border-neutral-100 disabled:opacity-30 
-                                    hover:bg-neutral-50 transition-colors'
-                                >
-                                    <ChevronLeft className='text-[#74090A]' size={20} />
-                                </button>
-
-                                <div className='flex gap-2'>
-                                    {[...Array(totalPages)].map((_, i) => (
-                                        <button
-                                            key={i + 1}
-                                            onClick={() => handlePageChange(i + 1)}
-                                            className={`w-9 h-9 rounded-md text-[11px] font-bold tracking-widest 
-                                                transition-all ${
-                                                currentPage === i + 1
-                                                    ? "bg-[#74090A] text-white shadow-sm"
-                                                    : "bg-neutral-50 text-neutral-400 hover:bg-neutral-100"
-                                            }`}
-                                        >
-                                            {i + 1}
-                                        </button>
-                                    ))}
+                                <div className='flex justify-center items-center mt-20 gap-4 pb-10'>
+                                    <button
+                                        disabled={currentPage === 1}
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                            className='p-2 rounded-md border border-neutral-100 
+                                        disabled:opacity-30 hover:bg-neutral-50 transition-colors'
+                                    >
+                                        <ChevronLeft className='text-[#74090A]' size={20} />
+                                    </button>
+                                    <div className='flex gap-2'>
+                                        {[...Array(totalPages)].map((_, i) => (
+                                            <button
+                                                key={i + 1}
+                                                onClick={() => handlePageChange(i + 1)}
+                                                className={`w-9 h-9 rounded-md text-[11px] 
+                                                    font-bold transition-all ${
+                                                    currentPage === i + 1
+                                                        ? "bg-[#74090A] text-white shadow-sm"
+                                                        : "bg-neutral-50 text-neutral-400 hover:bg-neutral-100"
+                                                }`}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                            className='p-2 rounded-md border border-neutral-100 
+                                        disabled:opacity-30 hover:bg-neutral-50 transition-colors'
+                                    >
+                                        <ChevronRight className='text-[#74090A]' size={20} />
+                                    </button>
                                 </div>
-
-                                <button
-                                    disabled={currentPage === totalPages}
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                            className='p-2 rounded-md border border-neutral-100 disabled:opacity-30 
-                                    hover:bg-neutral-50 transition-colors'
-                                >
-                                    <ChevronRight className='text-[#74090A]' size={20} />
-                                </button>
-                            </div>
-                        )}
+                            )}
                         </>
                     ) : (
-                        <div className="text-center py-32 bg-neutral-50 rounded-[40px] border 
-                        border-dashed border-neutral-200">
-                            <p className="text-neutral-400 font-light italic">No products found.</p>
-                                    <button onClick={() => { handleCategoryClick("All"); setPriceRange(200); }}
-                                        className="mt-4 text-[#74090A] text-[10px] font-bold uppercase 
-                                        tracking-widest">
+                                <div className="text-center py-32 bg-neutral-50 rounded-[40px] 
+                        border border-dashed border-neutral-200">
+                                    <p className="text-neutral-400 font-light italic">
+                                        No products found for this price or category.</p>
+                                    <button onClick={handleResetFilters} className="mt-4 text-[#74090A] 
+                            text-[10px] font-bold uppercase tracking-widest">
                                 Clear Filters
                             </button>
                         </div>

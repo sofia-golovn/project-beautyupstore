@@ -5,24 +5,39 @@ import Category from "../models/category.model.js";
 
 export const getAllProducts = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const { page = 1, limit = 12, minPrice = 0, maxPrice, sort } = req.query;
+
+        let query = {
+            price: { $gte: Number(minPrice) }
+        };
+        if (maxPrice) query.price.$lte = Number(maxPrice);
+
+        let sortOptions = {};
+        if (sort === "az") sortOptions = { name: 1 };
+        else if (sort === "za") sortOptions = { name: -1 };
+        else if (sort === "low-high") sortOptions = { price: 1 };
+        else if (sort === "high-low") sortOptions = { price: -1 };
+        else sortOptions = { createdAt: -1 };
+
         const skip = (page - 1) * limit;
 
-        const products = await Product.find({}).skip(skip).limit(limit);
-        const totalProducts = await Product.countDocuments();
+        const products = await Product.find(query)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(Number(limit));
 
-        res.json({ 
+        const totalProducts = await Product.countDocuments(query);
+
+        res.json({
             products,
-            currentPage: page,
             totalPages: Math.ceil(totalProducts / limit),
+            currentPage: Number(page),
             totalProducts
         });
     } catch (error) {
-        console.log("Error in getAllProducts controller", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
     }
-}
+};
 
 export const getFeaturedProducts = async (req, res) => {
     try {
@@ -121,27 +136,41 @@ export const getRecommendedProducts = async (req, res) => {
 };
 
 export const getProductsByCategory = async (req, res) => {
-    const { category } = req.params;
-    const page = parseInt(req.query.page) || 1; 
-    const limit = parseInt(req.query.limit) || 8; 
-    const skip = (page - 1) * limit;
-
     try {
-        const products = await Product.find({ category })
-            .sort({ createdAt: -1 })
+        const { category } = req.params;
+        const { page = 1, limit = 12, minPrice = 0, maxPrice, sort } = req.query;
+
+        let filter = { 
+            category: category, 
+            price: { $gte: Number(minPrice) } 
+        };
+        
+        if (maxPrice) {
+            filter.price.$lte = Number(maxPrice);
+        }
+
+        let sortOptions = {};
+        if (sort === "az") sortOptions = { name: 1 };
+        else if (sort === "za") sortOptions = { name: -1 };
+        else if (sort === "low-high") sortOptions = { price: 1 };
+        else if (sort === "high-low") sortOptions = { price: -1 };
+
+        const skip = (page - 1) * limit;
+
+        const products = await Product.find(filter)
+            .sort(sortOptions)
             .skip(skip)
-            .limit(limit);
+            .limit(Number(limit));
 
-        const totalProducts = await Product.countDocuments({ category });
+        const totalProducts = await Product.countDocuments(filter);
 
-        res.json({ 
+        res.json({
             products,
-            currentPage: page,
             totalPages: Math.ceil(totalProducts / limit),
+            currentPage: Number(page),
             totalProducts
         });
     } catch (error) {
-        console.log("Error in getProductsByCategory controller", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
@@ -231,6 +260,18 @@ export const getUniqueCategories = async (req, res) => {
         res.json(categories);
     } catch (error) {
         console.log("Error in getUniqueCategories", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+export const getMaxProductPrice = async (req, res) => {
+    try {
+        const topProduct = await Product.findOne().sort("-price");
+        
+        const maxPrice = topProduct ? topProduct.price : 200;
+        
+        res.json({ maxPrice });
+    } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

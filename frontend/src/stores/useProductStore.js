@@ -11,8 +11,79 @@ export const useProductStore = create((set, get) => ({
     currentPage: 1,
     totalPages: 1,
     totalProducts: 0,
+    maxPriceInDb: 0,
 
     setProducts: (products) => set({ products }),
+
+    fetchMaxPrice: async () => {
+        try {
+            const response = await axios.get("/products/max-price");
+            const price = response.data.maxPrice;
+            set({ maxPriceInDb: price });
+            return price; 
+        } catch (error) {
+            console.error("Error fetching max price", error);
+            set({ maxPriceInDb: 500 });
+            return 500;
+        }
+    },
+
+    fetchAllProducts: async (page = 1, filters = {}) => {
+        set({ loading: true });
+        try {
+            const { minPrice, maxPrice, sort } = filters;
+            const params = new URLSearchParams({
+                page,
+                limit: 12,
+                ...(minPrice && { minPrice }),
+                ...(maxPrice && { maxPrice }),
+                ...(sort && { sort })
+            });
+
+            const response = await axios.get(`/products?${params.toString()}`);
+            set({ 
+                products: response.data.products, 
+                totalPages: response.data.totalPages,
+                currentPage: response.data.currentPage,
+                loading: false 
+            });
+        } catch (error) {
+            set({ loading: false });
+            toast.error("Error fetching products");
+        }
+    },
+
+    fetchProductsByCategory: async (category, page = 1, filters = {}) => {
+        set({ loading: true });
+        try {
+            const formattedCategory = category.toLowerCase();
+            const { minPrice, maxPrice, sort } = filters;
+            
+            const params = new URLSearchParams({
+                page,
+                limit: 12,
+                ...(minPrice && { minPrice }),
+                ...(maxPrice && { maxPrice }),
+                ...(sort && { sort })
+            });
+
+            const response = await axios.get(`/products/category/${formattedCategory}?${params.toString()}`);
+            
+            const { products, totalPages, currentPage, totalProducts } = response.data;
+            
+            set({ 
+                products: Array.isArray(products) ? products : [], 
+                totalPages,
+                currentPage,
+                totalProducts,
+                loading: false 
+            });
+        } catch (error) {
+            set({ loading: false });
+            console.error("Fetch category error:", error);
+            toast.error("Failed to fetch products for this category");
+        }
+    },
 
     createProduct: async (productData) => {
         set({ loading: true });
@@ -65,44 +136,6 @@ export const useProductStore = create((set, get) => ({
             toast.success(`Category "${categoryName}" removed`);
         } catch (error) {
             toast.error("Failed to delete category");
-        }
-    },
-
-    fetchAllProducts: async (page = 1) => {
-        set({ loading: true });
-        try {
-            const response = await axios.get(`/products?page=${page}&limit=10`);
-            const { products, totalPages, currentPage, totalProducts } = response.data;
-            
-            set({ 
-                products: Array.isArray(products) ? products : [], 
-                totalPages,
-                currentPage,
-                totalProducts,
-                loading: false 
-            });
-        } catch (error) {
-            set({ loading: false });
-            toast.error("Failed to fetch products");
-        }
-    },
-
-    fetchProductsByCategory: async (category, page = 1) => {
-        set({ loading: true });
-        try {
-            const response = await axios.get(`/products/category/${category}?page=${page}&limit=8`);
-            const { products, totalPages, currentPage, totalProducts } = response.data;
-            
-            set({ 
-                products: Array.isArray(products) ? products : [], 
-                totalPages,
-                currentPage,
-                totalProducts,
-                loading: false 
-            });
-        } catch (error) {
-            set({ loading: false });
-            toast.error("Failed to fetch products");
         }
     },
 
