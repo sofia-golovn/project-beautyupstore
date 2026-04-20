@@ -63,7 +63,6 @@ const Navbar = () => {
                             <span className='text-black'>Beauty</span>
                             <span className='text-[#A3090A]'>Up</span>
                         </Link>
-                        <div className="hidden lg:block h-6 w-[1px] bg-gray-200"></div>
                     </div>
 
                     <nav className='hidden lg:flex items-center justify-center gap-10 font-sans'>
@@ -164,7 +163,6 @@ const Navbar = () => {
                     >
                         <div className='flex flex-col p-6 gap-6'>
                             
-                            {/* Блок Корзина/Вішліст */}
                             {user && (
                                 <div className="flex items-center justify-center gap-12">
                                     <Link to={"/wishlist"} onClick={toggleMenu} className="text-gray-900 

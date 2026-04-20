@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
+import { useUserStore } from "./useUserStore";
 
 export const useCartStore = create(
     persist(
@@ -26,36 +27,42 @@ export const useCartStore = create(
             },
 
             addToCart: async (product) => {
-                try {
-                    await axios.post("/cart", { productId: product._id });
-                    toast.success("The product has been added to the cart");
-                } catch (error) {
-                    console.log("Added locally (user not authorized)");
+                const user = useUserStore.getState().user;
+                if (!user) {
+                    toast.error("Please login to add products to your cart");
+                    return;
                 }
 
-                set((prevState) => {
-                    const existingItem = prevState.cart.find((item) => item._id === product._id);
-                    const newCart = existingItem
-                        ? prevState.cart.map((item) =>
-                              item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
-                          )
-                        : [...prevState.cart, { ...product, quantity: 1 }];
-                    return { cart: newCart };
-                });
-                get().calculateTotals();
+                try {
+                    await axios.post("/cart", { productId: product._id });
+                    
+                    set((prevState) => {
+                        const existingItem = prevState.cart.find((item) => item._id === product._id);
+                        const newCart = existingItem
+                            ? prevState.cart.map((item) =>
+                                  item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
+                              )
+                            : [...prevState.cart, { ...product, quantity: 1 }];
+                        return { cart: newCart };
+                    });
+                    get().calculateTotals();
+                    toast.success("Added to cart!");
+                } catch (error) {
+                    toast.error(error.response?.data?.message || "Failed to add to cart");
+                }
             },
 
             removeFromCart: async (productId) => {
                 try {
                     await axios.delete(`/cart`, { data: { productId } });
+                    set((prevState) => ({
+                        cart: prevState.cart.filter((item) => item._id !== productId),
+                    }));
+                    get().calculateTotals();
+                    toast.success("Removed from cart");
                 } catch (error) {
-                    console.log("Deleted locally");
+                    toast.error("Error removing item");
                 }
-
-                set((prevState) => ({
-                    cart: prevState.cart.filter((item) => item._id !== productId),
-                }));
-                get().calculateTotals();
             },
 
             updateQuantity: async (productId, quantity) => {
@@ -66,16 +73,15 @@ export const useCartStore = create(
 
                 try {
                     await axios.put(`/cart/${productId}`, { quantity });
+                    set((prevState) => ({
+                        cart: prevState.cart.map((item) =>
+                            item._id === productId ? { ...item, quantity } : item
+                        ),
+                    }));
+                    get().calculateTotals();
                 } catch (error) {
-                    console.log("Quantity updated locally");
+                    toast.error("Failed to update quantity");
                 }
-
-                set((prevState) => ({
-                    cart: prevState.cart.map((item) =>
-                        item._id === productId ? { ...item, quantity } : item
-                    ),
-                }));
-                get().calculateTotals();
             },
 
             getMyCoupon: async () => {
@@ -83,7 +89,7 @@ export const useCartStore = create(
                     const response = await axios.get("/coupons");
                     set({ coupon: response.data });
                 } catch (error) {
-                    console.error("An error occurred when receiving the coupon", error);
+                    console.error("Error receiving coupon", error);
                 }
             },
 

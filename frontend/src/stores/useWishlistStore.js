@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { toast } from "react-hot-toast";
+import { useUserStore } from "./useUserStore";
 
 export const useWishlistStore = create(
     persist(
@@ -8,15 +9,21 @@ export const useWishlistStore = create(
             wishlist: [],
 
             toggleWishlist: (product) => {
+                const user = useUserStore.getState().user;
+                if (!user) {
+                    toast.error("Please login to add products to your wishlist");
+                    return;
+                }
+
                 const { wishlist } = get();
                 const isExists = wishlist.find((item) => item._id === product._id);
 
                 if (isExists) {
                     set({ wishlist: wishlist.filter((item) => item._id !== product._id) });
-                    toast.success("Removed from wish list");
+                    toast.success("Removed from wishlist");
                 } else {
                     set({ wishlist: [...wishlist, product] });
-                    toast.success("Added to wish list");
+                    toast.success("Added to wishlist");
                 }
             },
 

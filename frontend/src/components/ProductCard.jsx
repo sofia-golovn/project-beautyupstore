@@ -1,12 +1,39 @@
 import { ShoppingCart, Heart } from "lucide-react";
 import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
+import { useUserStore } from "../stores/useUserStore"; 
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCartStore();
     const { toggleWishlist, isInWishlist } = useWishlistStore();
+    const { user } = useUserStore(); 
+    
     const isFavorite = isInWishlist(product._id);
+
+
+    const handleWishlistClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation(); 
+        
+        if (!user) {
+            toast.error("Please login to add products to your wishlist");
+            return;
+        }
+        toggleWishlist(product);
+    };
+
+    const handleCartClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!user) {
+            toast.error("Please login to add products to your cart");
+            return;
+        }
+        addToCart(product);
+    };
 
     return (
         <motion.div 
@@ -30,10 +57,7 @@ const ProductCard = ({ product }) => {
                 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100
                 transition-all duration-500">
                     <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            toggleWishlist(product);
-                        }}
+                        onClick={handleWishlistClick}
                         className={`p-3 rounded-full backdrop-blur-md shadow-sm transition-all duration-300 ${
                             isFavorite 
                             ? "bg-[#74090A] text-white" 
@@ -44,10 +68,7 @@ const ProductCard = ({ product }) => {
                     </button>
 
                     <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            addToCart(product);
-                        }}
+                        onClick={handleCartClick}
                         className="p-3 rounded-full bg-[#74090A] text-white 
                         hover:bg-[#4F0608] backdrop-blur-md shadow-sm transition-all duration-300"
                     >
