@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
 import { useCartStore } from "../stores/useCartStore"; 
 import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal"; 
-import { Filter, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { Filter, ChevronLeft, ChevronRight, RotateCcw, X } from "lucide-react";
 
 const CategoryPage = () => {
     const { category: urlCategory } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     
+    const queryParams = new URLSearchParams(location.search);
+    const searchTerm = queryParams.get("search") || "";
+
     const { 
         products, 
         fetchProductsByCategory, 
@@ -44,12 +48,12 @@ const CategoryPage = () => {
         const filters = {
             minPrice: 0,
             maxPrice: priceRange,
-            sort: sortOrder
+            sort: sortOrder,
+            search: searchTerm
         };
 
         const delayDebounceFn = setTimeout(() => {
             const isPagination = currentPage > 1;
-
             if (selectedCategory === "All") {
                 fetchAllProducts(currentPage, filters, isPagination);
             } else {
@@ -58,7 +62,7 @@ const CategoryPage = () => {
         }, 400);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [selectedCategory, currentPage, priceRange, sortOrder]);
+    }, [selectedCategory, currentPage, priceRange, sortOrder, searchTerm]);
     
     useEffect(() => {
         const category = urlCategory || "All";
@@ -66,7 +70,7 @@ const CategoryPage = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [urlCategory]);
 
-    const handleResetFilters = () => {
+    const handleGlobalReset = () => {
         setSelectedCategory("All");
         setSortOrder("default");
         setPriceRange(maxPriceInDb || 200);
@@ -75,20 +79,21 @@ const CategoryPage = () => {
 
     const handleCategoryClick = (cat) => {
         setSelectedCategory(cat);
+        const searchPart = searchTerm ? `?search=${searchTerm}` : "";
         if (cat === "All") {
-            navigate("/category");
+            navigate(`/category${searchPart}`);
         } else {
-            navigate(`/category/${cat}`);
+            navigate(`/category/${cat}${searchPart}`);
         }
     };
 
     const handlePageChange = (page) => {
         if (page >= 1 && page <= totalPages) {
+            const filters = { minPrice: 0, maxPrice: priceRange, sort: sortOrder, search: searchTerm };
             if (selectedCategory === "All") {
-                fetchAllProducts(page, { minPrice: 0, maxPrice: priceRange, sort: sortOrder });
+                fetchAllProducts(page, filters);
             } else {
-                fetchProductsByCategory(selectedCategory.toLowerCase(), page,
-                    { minPrice: 0, maxPrice: priceRange, sort: sortOrder });
+                fetchProductsByCategory(selectedCategory.toLowerCase(), page, filters);
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -100,23 +105,62 @@ const CategoryPage = () => {
     };
 
     return (
-        <div className='max-w-7xl mx-auto px-6 py-10 min-h-screen bg-white overflow-x-hidden'>
+        <div className='max-w-7xl mx-auto px-6 py-10 min-h-screen bg-white overflow-x-hidden pt-24 md:pt-32'>
             <header className="mb-12 border-b border-neutral-50 pb-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-[#74090A] font-bold mb-2 block">
-                            Category
-                        </span>
-                        <div className="flex items-center gap-4">
-                            <h1 className="text-4xl md:text-6xl font-light tracking-tight text-neutral-900 
-                            font-serif capitalize">
-                                {selectedCategory}
-                            </h1>
+                        <div className="flex items-center gap-3 mb-2 h-4">
+                            {searchTerm && (
+                                <>
+                                    <span className="text-[10px] uppercase tracking-[0.3em] text-[#74090A] 
+                                    font-bold block">
+                                        Search Results for "{searchTerm}"
+                                    </span>
+                                    <button 
+                                        onClick={() => navigate(urlCategory ? `/category/${urlCategory}` : "/category")}
+                                        className="p-1 hover:bg-neutral-100 rounded-full transition-all 
+                                        text-neutral-400 hover:text-[#74090A]"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </>
+                            )}
+                            {!searchTerm && (
+                                <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 
+                                font-bold block">
+                                    Category
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-4xl md:text-6xl font-light tracking-tight 
+                                text-neutral-900 font-serif capitalize">
+                                    {selectedCategory}
+                                </h1>
+                                
+                                {(selectedCategory !== "All" || 
+                                  sortOrder !== "default" || 
+                                  priceRange < (maxPriceInDb || 200)) && (
+                                    <button 
+                                        onClick={handleGlobalReset}
+                                        className="group flex items-center gap-2 text-neutral-300 
+                                        hover:text-[#74090A] transition-all"
+                                        title="Reset filters"
+                                    >
+                                        <RotateCcw size={20} className="group-hover:rotate-[-45deg] 
+                                        transition-transform" />
+                                        <span className="text-[9px] uppercase font-bold tracking-tighter 
+                                        opacity-0 group-hover:opacity-100 transition-opacity">Reset</span>
+                                    </button>
+                                )}
+                            </div>
+
                             <button 
                                 onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-full border 
-                                border-neutral-100 hover:bg-neutral-50 transition-all text-neutral-500 
-                                hover:text-[#74090A]"
+                                className="flex items-center gap-2 px-4 py-2 rounded-full 
+                                border border-neutral-100 hover:bg-neutral-50 transition-all text-neutral-500 hover:text-[#74090A]"
                             >
                                 <Filter size={16} />
                                 <span className="text-[10px] uppercase font-bold tracking-widest">
@@ -125,6 +169,7 @@ const CategoryPage = () => {
                             </button>
                         </div>
                     </div>
+                    
                     <div className="flex items-center justify-between md:justify-end w-full md:w-auto">
                         <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase">
                             {products.length} Products displayed
@@ -134,25 +179,16 @@ const CategoryPage = () => {
             </header>
 
             <div className="flex flex-col md:flex-row gap-12 relative">
+                {/* Filters Sidebar */}
                 <aside className={`transition-all duration-500 ease-in-out ${
                     isFiltersOpen 
                     ? "w-full md:w-72 opacity-100 visible" 
                     : "w-0 opacity-0 invisible h-0 md:h-auto overflow-hidden"
                 }`}>
                     <div className="space-y-12 pr-4 min-w-[250px] md:min-w-0">
-                        <button 
-                            onClick={handleResetFilters}
-                            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl 
-                            border border-[#74090A]/10 text-[#74090A] hover:bg-[#74090A] hover:text-white 
-                            transition-all duration-300 group"
-                        >
-                            <RotateCcw size={14} className="group-hover:rotate-[-45deg] transition-transform" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Reset All Filters</span>
-                        </button>
-
                         <div>
-                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase mb-6 
-                            tracking-[0.15em] border-b border-neutral-50 pb-2'>
+                            <h3 className='text-[10px] font-bold text-neutral-400 
+                            uppercase mb-6 tracking-[0.15em] border-b border-neutral-50 pb-2'>
                                 Categories
                             </h3>
                             <ul className='space-y-1'>
@@ -163,8 +199,8 @@ const CategoryPage = () => {
                                             className={`w-full text-left py-2 px-3 rounded-xl 
                                                 transition-all duration-300 flex justify-between items-center ${
                                                 selectedCategory.toLowerCase() === cat.toLowerCase() 
-                                                ? "text-[#74090A] font-bold" 
-                                                : "text-neutral-500 hover:text-black"
+                                                ? "text-[#74090A] font-bold bg-[#74090A]/5" 
+                                                : "text-neutral-500 hover:text-black hover:bg-neutral-50"
                                             }`}
                                         >
                                             <span className="text-sm tracking-wide">{cat}</span>
@@ -177,13 +213,14 @@ const CategoryPage = () => {
                         </div>
 
                         <div>
-                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase mb-4 
-                            tracking-[0.15em]'>Sort By</h3>
+                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase mb-4 tracking-[0.15em]'>
+                                Sort By
+                            </h3>
                             <select 
                                 value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value)}
-                                className='w-full p-3 border-b border-neutral-200 bg-transparent 
-                                text-sm text-neutral-600 outline-none focus:border-[#74090A]'
+                                className='w-full p-3 border-b border-neutral-200 
+                                bg-transparent text-sm text-neutral-600 outline-none focus:border-[#74090A]'
                             >
                                 <option value="default">Newest First</option>
                                 <option value="az">A to Z</option>
@@ -195,8 +232,9 @@ const CategoryPage = () => {
 
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className='text-[10px] font-bold text-neutral-400 
-                                uppercase tracking-[0.15em]'>Max Price</h3>
+                                <h3 className='text-[10px] font-bold text-neutral-400 uppercase tracking-[0.15em]'>
+                                    Max Price
+                                </h3>
                                 <span className="text-[#74090A] font-bold text-sm">${priceRange}</span>
                             </div>
                             <input
@@ -209,8 +247,8 @@ const CategoryPage = () => {
                                 className='w-full h-[2px] bg-neutral-100 appearance-none 
                                 cursor-pointer accent-[#74090A]'
                             />
-                            <div className="flex justify-between mt-2 text-[9px] text-neutral-300 
-                            font-bold uppercase tracking-tighter">
+                            <div className="flex justify-between mt-2 text-[9px] 
+                            text-neutral-300 font-bold uppercase tracking-tighter">
                                 <span>$0</span>
                                 <span>Max: ${maxPriceInDb || 500}</span>
                             </div>
@@ -280,13 +318,14 @@ const CategoryPage = () => {
                             )}
                         </>
                     ) : (
-                                <div className="text-center py-32 bg-neutral-50 rounded-[40px] 
-                        border border-dashed border-neutral-200">
-                                    <p className="text-neutral-400 font-light italic">
-                                        No products found for this price or category.</p>
-                                    <button onClick={handleResetFilters} className="mt-4 text-[#74090A] 
-                            text-[10px] font-bold uppercase tracking-widest">
-                                Clear Filters
+                                <div className="text-center py-32 bg-neutral-50 rounded-[40px] border 
+                        border-dashed border-neutral-200">
+                            <p className="text-neutral-400 font-light italic">
+                                {searchTerm ? `No results for "${searchTerm}"` : "No products found for these criteria."}
+                            </p>
+                                    <button onClick={handleGlobalReset} className="mt-4 text-[#74090A] 
+                            text-[10px] font-bold uppercase tracking-widest hover:underline transition-all">
+                                Clear All
                             </button>
                         </div>
                     )}

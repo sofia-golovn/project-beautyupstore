@@ -31,22 +31,24 @@ export const useProductStore = create((set, get) => ({
     fetchAllProducts: async (page = 1, filters = {}, isPagination = false) => {
         if (!isPagination) set({ loading: true });
         try {
-            const { minPrice, maxPrice, sort } = filters;
+            // ДОДАНО: search витягується з filters
+            const { minPrice, maxPrice, sort, search } = filters;
             const params = new URLSearchParams({
                 page,
                 limit: 12,
                 ...(minPrice && { minPrice }),
                 ...(maxPrice && { maxPrice }),
-                ...(sort && { sort })
+                ...(sort && { sort }),
+                ...(search && { search }) // ДОДАНО: пошук йде в параметри запиту
             });
 
             const response = await axios.get(`/products?${params.toString()}`);
             set({ 
-            products: response.data.products, 
-            totalPages: response.data.totalPages,
-            currentPage: response.data.currentPage,
-            loading: false 
-        });
+                products: response.data.products, 
+                totalPages: response.data.totalPages,
+                currentPage: response.data.currentPage,
+                loading: false 
+            });
         } catch (error) {
             set({ loading: false });
             toast.error("Error fetching products");
@@ -57,14 +59,15 @@ export const useProductStore = create((set, get) => ({
         set({ loading: true });
         try {
             const formattedCategory = category.toLowerCase();
-            const { minPrice, maxPrice, sort } = filters;
+            const { minPrice, maxPrice, sort, search } = filters;
             
             const params = new URLSearchParams({
                 page,
                 limit: 12,
                 ...(minPrice && { minPrice }),
                 ...(maxPrice && { maxPrice }),
-                ...(sort && { sort })
+                ...(sort && { sort }),
+                ...(search && { search })
             });
 
             const response = await axios.get(`/products/category/${formattedCategory}?${params.toString()}`);

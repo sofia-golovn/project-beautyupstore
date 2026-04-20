@@ -1,16 +1,23 @@
 import { redis } from "../lib/redis.js";
 import cloudinary from "../lib/cloudinary.js";
 import Product from "../models/product.model.js";
-import Category from "../models/category.model.js"; 
 
 export const getAllProducts = async (req, res) => {
     try {
-        const { page = 1, limit = 12, minPrice = 0, maxPrice, sort } = req.query;
+        const { page = 1, limit = 12, minPrice = 0, maxPrice, sort, search } = req.query;
 
         let query = {
             price: { $gte: Number(minPrice) }
         };
+        
         if (maxPrice) query.price.$lte = Number(maxPrice);
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { category: { $regex: search, $options: "i" } }
+            ];
+        }
 
         let sortOptions = {};
         if (sort === "az") sortOptions = { name: 1 };
@@ -27,6 +34,50 @@ export const getAllProducts = async (req, res) => {
             .limit(Number(limit));
 
         const totalProducts = await Product.countDocuments(query);
+
+        res.json({
+            products,
+            totalPages: Math.ceil(totalProducts / limit),
+            currentPage: Number(page),
+            totalProducts
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+export const getProductsByCategory = async (req, res) => {
+    try {
+        const { category } = req.params;
+        const { page = 1, limit = 12, minPrice = 0, maxPrice, sort, search } = req.query;
+
+        let filter = { 
+            category: category, 
+            price: { $gte: Number(minPrice) } 
+        };
+        
+        if (maxPrice) {
+            filter.price.$lte = Number(maxPrice);
+        }
+
+        if (search) {
+            filter.name = { $regex: search, $options: "i" };
+        }
+
+        let sortOptions = {};
+        if (sort === "az") sortOptions = { name: 1 };
+        else if (sort === "za") sortOptions = { name: -1 };
+        else if (sort === "low-high") sortOptions = { price: 1 };
+        else if (sort === "high-low") sortOptions = { price: -1 };
+
+        const skip = (page - 1) * limit;
+
+        const products = await Product.find(filter)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(Number(limit));
+
+        const totalProducts = await Product.countDocuments(filter);
 
         res.json({
             products,
@@ -131,46 +182,6 @@ export const getRecommendedProducts = async (req, res) => {
         res.json(products);
     } catch (error) {
         console.log("Error in getRecommendedProducts controller", error.message);
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-};
-
-export const getProductsByCategory = async (req, res) => {
-    try {
-        const { category } = req.params;
-        const { page = 1, limit = 12, minPrice = 0, maxPrice, sort } = req.query;
-
-        let filter = { 
-            category: category, 
-            price: { $gte: Number(minPrice) } 
-        };
-        
-        if (maxPrice) {
-            filter.price.$lte = Number(maxPrice);
-        }
-
-        let sortOptions = {};
-        if (sort === "az") sortOptions = { name: 1 };
-        else if (sort === "za") sortOptions = { name: -1 };
-        else if (sort === "low-high") sortOptions = { price: 1 };
-        else if (sort === "high-low") sortOptions = { price: -1 };
-
-        const skip = (page - 1) * limit;
-
-        const products = await Product.find(filter)
-            .sort(sortOptions)
-            .skip(skip)
-            .limit(Number(limit));
-
-        const totalProducts = await Product.countDocuments(filter);
-
-        res.json({
-            products,
-            totalPages: Math.ceil(totalProducts / limit),
-            currentPage: Number(page),
-            totalProducts
-        });
-    } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
