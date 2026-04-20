@@ -2,6 +2,9 @@ import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Clock, Instagram, Twitter } from "lucide-react";
 
 const ContactPage = () => {
+    const address = "412 West Broadway, New York, NY 10012, USA";
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
     return (
         <div className='pt-24 md:pt-32 pb-20 min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden'>
             <div className='container mx-auto px-4 sm:px-6 max-w-6xl'>
@@ -24,24 +27,38 @@ const ContactPage = () => {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className='space-y-8 md:space-y-10'
+                        className='space-y-8 md:space-y-10 relative z-10'
                     >
                         <div className='flex items-start gap-4'>
                             <MapPin size={22} className='text-[#74090A] shrink-0 mt-1' />
-                            <p className='text-base md:text-lg tracking-wide'>
-                                412 West Broadway, New York, NY 10012, USA</p>
+                            <a 
+                                href={googleMapsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className='text-base md:text-lg tracking-wide hover:text-[#74090A] transition-colors decoration-[#74090A]/30 underline-offset-4 hover:underline'
+                            >
+                                {address}
+                            </a>
                         </div>
 
                         <div className='flex items-center gap-4'>
                             <Phone size={22} className='text-[#74090A] shrink-0' />
-                            <p className='text-base md:text-lg tracking-wide'>
-                                +1 (212) 555-0198</p>
+                            <a 
+                                href="tel:+12125550198" 
+                                className='text-base md:text-lg tracking-wide hover:text-[#74090A] transition-colors'
+                            >
+                                +1 (212) 555-0198
+                            </a>
                         </div>
 
                         <div className='flex items-center gap-4'>
                             <Mail size={22} className='text-[#74090A] shrink-0' />
-                            <p className='text-base md:text-lg tracking-wide break-words'>
-                                beautyup@gmail.com</p>
+                            <a 
+                                href="mailto:webstorebeautyup@gmail.com" 
+                                className='text-base md:text-lg tracking-wide break-words hover:text-[#74090A] transition-colors'
+                            >
+                                webstorebeautyup@gmail.com
+                            </a>
                         </div>
 
                         <div className='flex items-start gap-4'>
@@ -69,8 +86,7 @@ const ContactPage = () => {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.4 }}
-                        className='w-full overflow-hidden 
-                        rounded-sm shadow-sm border border-gray-100'
+                        className='w-full overflow-hidden rounded-sm shadow-sm border border-gray-100 relative'
                     >
                         <img 
                             src="/office.jpg" 
@@ -78,7 +94,7 @@ const ContactPage = () => {
                             className='w-full h-full object-cover object-center 
                             transform hover:scale-105 transition-transform duration-700 ease-in-out'
                         />
-                        <div className="absolute inset-0 bg-black/5"></div>
+                        <div className="absolute inset-0 bg-black/5 pointer-events-none"></div>
                     </motion.div>
 
                 </div>
