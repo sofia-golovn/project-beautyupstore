@@ -189,3 +189,28 @@ export const resetPassword = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { email, name, image } = req.body;
+        
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            user = await User.create({
+                name,
+                email,
+                password: Math.random().toString(36).slice(-10) + "Aa1!", 
+            });
+        }
+
+        const { accessToken, refreshToken } = generateTokens(user._id);
+        await storeRefreshToken(user._id, refreshToken);
+        setCookies(res, accessToken, refreshToken);
+
+        res.json(user);
+    } catch (error) {
+        console.error("Error in googleLogin:", error.message);
+        res.status(500).json({ message: "Server error" });
+    }
+};

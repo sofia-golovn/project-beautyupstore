@@ -10,7 +10,7 @@ const LoginPage = () => {
     password: "",
   });
 
-  const { login, loading } = useUserStore();
+  const { loginWithGoogle, login, loading } = useUserStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,7 +43,6 @@ const LoginPage = () => {
       >
         <div className='bg-white py-6 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-100'>
           <form onSubmit={handleSubmit} className='space-y-6'>
-            
             <div>
               <label className='block text-sm font-medium text-gray-700'>Email</label>
               <div className='mt-1 relative rounded-md shadow-sm'>
@@ -99,6 +98,36 @@ const LoginPage = () => {
               {loading ? <Loader className='animate-spin' /> : "Log in"}
             </button>
           </form>
+
+          {/* Роздільник "Or continue with" */}
+          <div className='mt-6'>
+            <div className='relative'>
+              <div className='absolute inset-0 flex items-center'>
+                <div className='w-full border-t border-gray-200'></div>
+              </div>
+              <div className='relative flex justify-center text-sm'>
+                <span className='px-2 bg-white text-gray-500 uppercase tracking-wider text-[10px]'>
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={loginWithGoogle}
+              type='button'
+              disabled={loading}
+              className='mt-4 w-full flex justify-center items-center gap-3 py-2 px-4 border 
+              border-gray-200 rounded-md shadow-sm bg-white text-sm font-medium 
+              text-gray-700 hover:bg-gray-50 transition duration-150 disabled:opacity-50'
+            >
+              <img 
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                alt="Google" 
+                className="h-5 w-5" 
+              />
+              <span>Google</span>
+            </button>
+          </div>
         </div>
       </motion.div>
     </div>

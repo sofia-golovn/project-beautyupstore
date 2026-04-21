@@ -2,6 +2,8 @@ import { create } from "zustand";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useWishlistStore } from "./useWishlistStore"; 
+import { auth, googleProvider } from "../lib/firebase";
+import { signInWithPopup } from "firebase/auth";
 
 export const useUserStore = create((set, get) => ({
     user: null,
@@ -130,4 +132,27 @@ export const useUserStore = create((set, get) => ({
         }
     },
     
+    loginWithGoogle: async () => {
+        set({ loading: true });
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const firebaseUser = result.user;
+
+            const res = await axios.post("/auth/google", {
+                name: firebaseUser.displayName,
+                email: firebaseUser.email,
+                image: firebaseUser.photoURL,
+            });
+
+            set({ user: res.data, loading: false });
+            
+            useWishlistStore.getState().getWishlist();
+            
+        } catch (error) {
+            set({ loading: false });
+            console.error("Google Auth Error:", error);
+            toast.error(error.response?.data?.message || "Google login failed");
+        }
+    },
+
 }));
