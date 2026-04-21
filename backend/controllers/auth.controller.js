@@ -1,6 +1,8 @@
 import { redis } from "../lib/redis.js";
+import { sendResetCodeEmail } from "../lib/mail.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+
 
 const generateTokens = (userId) => { 
     const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
@@ -145,4 +147,45 @@ export const getProfile = async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
+};
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetPasswordCode = resetCode;
+        user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+        await user.save();
+
+        await sendResetCodeEmail(user.email, resetCode);
+        res.json({ message: "Reset code sent to your email" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, code, newPassword } = req.body;
+        const user = await User.findOne({ 
+            email, 
+            resetPasswordCode: code, 
+            resetPasswordExpires: { $gt: Date.now() } 
+        });
+
+        if (!user) return res.status(400).json({ message: "Invalid or expired code" });
+
+        user.password = newPassword;
+        user.resetPasswordCode = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ message: "Password updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
 };

@@ -101,4 +101,33 @@ export const useUserStore = create((set, get) => ({
             toast.error(error.response?.data?.message || "Failed to change role");
         }
     },
+
+    forgotPassword: async (email) => {
+        set({ loading: true });
+        try {
+            await axios.post("/auth/forgot-password", { email });
+            set({ loading: false });
+            toast.success("Code sent to your email!");
+            return true;
+        } catch (error) {
+            set({ loading: false });
+            toast.error(error.response?.data?.message || "Error sending code");
+            return false;
+        }
+    },
+
+    resetPassword: async (email, code, newPassword) => {
+        set({ loading: true });
+        try {
+            await axios.post("/auth/reset-password", { email, code, newPassword });
+            set({ loading: false });
+            toast.success("Password changed! You can now log in.");
+            return true;
+        } catch (error) {
+            set({ loading: false });
+            toast.error(error.response?.data?.message || "Error resetting password");
+            return false;
+        }
+    },
+    
 }));

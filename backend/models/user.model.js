@@ -35,9 +35,16 @@ const userSchema = new mongoose.Schema(
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Product",
-                default: [],
             },
         ],
+        resetPasswordCode: {
+            type: String,
+            default: null,
+        },
+        resetPasswordExpires: {
+            type: Date,
+            default: null,
+        },
         role: {
             type: String,
             enum: ["customer", "admin"],

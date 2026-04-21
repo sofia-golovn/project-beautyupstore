@@ -10,6 +10,7 @@ import CategoryPage from "./pages/CategoryPage";
 import ContactPage from "./pages/ContactPage";
 import CartPage from "./pages/CartPage";
 import WishlistPage from "./pages/WishlistPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -52,7 +53,8 @@ function App() {
             
             <Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
             <Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
-            
+            <Route path='/forgot-password' element={<ForgotPasswordPage />} />
+
             <Route
               path='/secret-dashboard'
               element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}
