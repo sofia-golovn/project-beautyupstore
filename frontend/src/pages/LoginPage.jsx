@@ -12,9 +12,9 @@ const LoginPage = () => {
 
   const { login, loading } = useUserStore();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    login(formData.email, formData.password);
+    await login(formData.email, formData.password);
   };
 
   return (
@@ -42,7 +42,7 @@ const LoginPage = () => {
         transition={{ duration: 0.8 }}
       >
         <div className='bg-white py-6 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-100'>
-          <form onSubmit={handleSubmit} className='space-y-6' method="POST">
+          <form onSubmit={handleSubmit} className='space-y-6'>
             
             <div>
               <label className='block text-sm font-medium text-gray-700'>Email</label>
@@ -53,13 +53,12 @@ const LoginPage = () => {
                 <input
                   type='email'
                   id='email'
-                  name='email'
-                  autoComplete='username email' 
                   required
                   placeholder='example@example.com'
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className='block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:ring-[#74090A] focus:border-[#74090A] sm:text-sm'
+                  className='block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md 
+                  placeholder-gray-400 focus:ring-[#74090A] focus:border-[#74090A] sm:text-sm'
                 />
               </div>
             </div>
@@ -73,13 +72,13 @@ const LoginPage = () => {
                 <input
                   type='password'
                   id='password'
-                  name='password' 
-                  autoComplete='current-password' 
                   required
                   placeholder='••••••••'
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className='block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:ring-[#74090A] focus:border-[#74090A] sm:text-sm'
+                  className='block w-full px-3 py-2 pl-10 border border-gray-300 
+                  rounded-md placeholder-gray-400 focus:ring-[#74090A] 
+                  focus:border-[#74090A] sm:text-sm'
                 />
               </div>
             </div>
@@ -92,7 +91,9 @@ const LoginPage = () => {
 
             <button
               type='submit'
-              className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#74090A] hover:bg-[#5a0708] transition duration-150'
+              className='w-full flex justify-center py-2 px-4 border 
+              border-transparent rounded-md shadow-sm text-sm font-medium 
+              text-white bg-[#74090A] hover:bg-[#5a0708] transition duration-150'
               disabled={loading}
             >
               {loading ? <Loader className='animate-spin' /> : "Log in"}

@@ -10,6 +10,7 @@ import couponRoutes from "./routes/coupon.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import userRoutes from "./routes/user.route.js";
+import wishlistRoutes from "./routes/wishlist.route.js";
 
 import { connectDB } from "./lib/db.js";
 
@@ -32,6 +33,7 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 
 app.listen(PORT, () => {

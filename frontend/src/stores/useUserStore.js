@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
+import { useWishlistStore } from "./useWishlistStore"; 
 
 export const useUserStore = create((set, get) => ({
     user: null,
     allUsers: [], 
     loading: false,
     checkingAuth: true,
-
 
     signup: async ({ name, email, password, confirmPassword }) => {
         set({ loading: true });
@@ -18,6 +18,8 @@ export const useUserStore = create((set, get) => ({
         try {
             const res = await axios.post("/auth/signup", { name, email, password });
             set({ user: res.data, loading: false });
+            
+            useWishlistStore.getState().getWishlist();
         } catch (error) {
             set({ loading: false });
             toast.error(error.response?.data?.message || "An error occurred");
@@ -29,6 +31,8 @@ export const useUserStore = create((set, get) => ({
         try {
             const res = await axios.post("/auth/login", { email, password });
             set({ user: res.data, loading: false });
+            
+            useWishlistStore.getState().getWishlist();
         } catch (error) {
             set({ loading: false });
             toast.error(error.response?.data?.message || "An error occurred");
@@ -39,6 +43,8 @@ export const useUserStore = create((set, get) => ({
         try {
             await axios.post("/auth/logout");
             set({ user: null, allUsers: [] });
+            
+            useWishlistStore.getState().clearWishlist();
         } catch (error) {
             toast.error(error.response?.data?.message || "An error occurred during logout");
         }
