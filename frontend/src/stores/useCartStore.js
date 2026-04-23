@@ -8,7 +8,8 @@ export const useCartStore = create(
     persist(
         (set, get) => ({
             cart: [],
-            coupon: null,
+            coupon: null, 
+            coupons: [], 
             total: 0,
             subtotal: 0,
             isCouponApplied: false,
@@ -87,20 +88,22 @@ export const useCartStore = create(
             getMyCoupon: async () => {
                 try {
                     const response = await axios.get("/coupons");
-                    set({ coupon: response.data });
+                    const couponsData = Array.isArray(response.data) ? response.data : [response.data];
+                    set({ coupons: couponsData.filter(Boolean) }); 
                 } catch (error) {
                     console.error("Error receiving coupon", error);
+                    set({ coupons: [] });
                 }
             },
 
-            applyCoupon: async (code) => {
+            applyCoupon: async (code, cartTotal) => {
                 try {
-                    const response = await axios.post("/coupons/validate", { code });
+                    const response = await axios.post("/coupons/validate", { code, cartTotal });
                     set({ coupon: response.data, isCouponApplied: true });
-                    get().calculateTotals();
-                    toast.success("Coupon applied!");
+                    get().calculateTotals(); 
+                    toast.success("Coupon applied successfully");
                 } catch (error) {
-                    toast.error(error.response?.data?.message || "Invalid coupon");
+                    toast.error(error.response?.data?.message || "Failed to apply coupon");
                 }
             },
 
@@ -124,11 +127,11 @@ export const useCartStore = create(
             },
 
             resetCart: () => {
-                set({ cart: [], coupon: null, total: 0, subtotal: 0, isCouponApplied: false });
+                set({ cart: [], coupon: null, coupons: [], total: 0, subtotal: 0, isCouponApplied: false });
             },
 
             clearCart: async () => {
-                set({ cart: [], coupon: null, total: 0, subtotal: 0, isCouponApplied: false });
+                set({ cart: [], coupon: null, coupons: [], total: 0, subtotal: 0, isCouponApplied: false });
             }
         }),
         {

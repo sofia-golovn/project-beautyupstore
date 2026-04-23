@@ -36,8 +36,25 @@ app.use("/api/users", userRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log("Server is running on http://localhost:" + PORT);
     
-    connectDB();
+    await connectDB();
+
+    try {
+        const mongoose = (await import("mongoose")).default;
+        const collection = mongoose.connection.db.collection("coupons");
+        
+        const indexes = await collection.indexes();
+        console.log("Current indexes in DB:", indexes.map(i => i.name));
+
+        if (indexes.some(i => i.name === "userId_1")) {
+            await collection.dropIndex("userId_1");
+            console.log("SUCCESS: Index userId_1 was found and deleted");
+        } else {
+            console.log("Index userId_1 not found, everything is clean.");
+        }
+    } catch (err) {
+        console.log("Note: Index cleaning skipped or index doesn't exist.");
+    }
 });

@@ -61,7 +61,9 @@ const OrderSummary = () => {
 
                     {coupon && isCouponApplied && (
                         <dl className='flex items-center justify-between gap-4'>
-                            <dt className='text-sm font-light text-neutral-500 italic'>Coupon applied ({coupon.code})</dt>
+                            <dt className='text-sm font-light text-neutral-500 italic'>
+                                Coupon applied ({coupon.code})
+                            </dt>
                             <dd className='text-sm font-bold text-[#74090A]'>-{coupon.discountPercentage}%</dd>
                         </dl>
                     )}
@@ -76,7 +78,8 @@ const OrderSummary = () => {
                     <motion.button
                         className="flex w-full items-center justify-center rounded-lg bg-[#74090A] px-8 
                         py-3.5 text-[9px] font-bold uppercase tracking-widest text-white 
-                        hover:bg-[#4F0608] transition-all duration-300 shadow-sm active:scale-[0.98] focus:outline-none"
+                        hover:bg-[#4F0608] transition-all duration-300 shadow-sm active:scale-[0.98] 
+                        focus:outline-none"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handlePayment}
@@ -87,9 +90,10 @@ const OrderSummary = () => {
                     <div className='flex items-center justify-center gap-3'>
                         <span className="text-[9px] uppercase tracking-widest text-neutral-400">or</span>
                         <Link
-                            to="/"
+                            to="/category"
                             className="inline-flex items-center gap-2 text-[9px] 
-                            font-bold uppercase tracking-[0.2em] text-neutral-900 hover:text-[#74090A] transition-colors"
+                            font-bold uppercase tracking-[0.2em] text-neutral-900 
+                            hover:text-[#74090A] transition-colors"
                         >
                             Continue Shopping
                             <MoveRight size={14} />

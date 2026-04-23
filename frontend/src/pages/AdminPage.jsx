@@ -1,4 +1,4 @@
-import { BarChart, PlusCircle, ShoppingBasket, Users, ChevronLeft, ChevronRight } from "lucide-react"; 
+import { BarChart, PlusCircle, ShoppingBasket, Users, ChevronLeft, ChevronRight, Ticket } from "lucide-react"; 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
@@ -7,11 +7,13 @@ import CreateProductForm from "../components/CreateProductForm";
 import EditProductForm from "../components/EditProductForm"; 
 import ProductsList from "../components/ProductsList";
 import UsersManager from "../components/UsersManager"; 
+import CouponManager from "../components/CouponManager";
 import { useProductStore } from "../stores/useProductStore";
 
 const tabs = [
     { id: "create", label: "Create Product", icon: PlusCircle },
     { id: "products", label: "Products", icon: ShoppingBasket },
+    { id: "coupons", label: "Coupons", icon: Ticket }, // Додана нова вкладка
     { id: "users", label: "Users", icon: Users }, 
     { id: "analytics", label: "Analytics", icon: BarChart },
 ];
@@ -81,13 +83,12 @@ const AdminPage = () => {
                                 <>
                                     <ProductsList onEdit={setEditingProduct} />
                                     
-                                    {/* ІНТЕРФЕЙС ПАГІНАЦІЇ */}
                                     {totalPages > 1 && (
                                         <div className='flex justify-center items-center mt-8 gap-4 pb-10'>
                                             <button
                                                 disabled={currentPage === 1}
                                                 onClick={() => handlePageChange(currentPage - 1)}
-                                                    className='p-2 rounded-full border border-gray-200 
+                                                className='p-2 rounded-full border border-gray-200 
                                                 disabled:opacity-30 hover:bg-gray-50 transition-colors'
                                             >
                                                 <ChevronLeft className='text-[#74090A]' size={20} />
@@ -113,7 +114,7 @@ const AdminPage = () => {
                                             <button
                                                 disabled={currentPage === totalPages}
                                                 onClick={() => handlePageChange(currentPage + 1)}
-                                                    className='p-2 rounded-full border border-gray-200 
+                                                className='p-2 rounded-full border border-gray-200 
                                                 disabled:opacity-30 hover:bg-gray-50 transition-colors'
                                             >
                                                 <ChevronRight className='text-[#74090A]' size={20} />
@@ -125,6 +126,8 @@ const AdminPage = () => {
                         </>
                     )}
 
+                    {activeTab === "coupons" && <CouponManager />}
+                    
                     {activeTab === "users" && <UsersManager />}
                     {activeTab === "analytics" && <AnalyticsTab />}
                 </div>
