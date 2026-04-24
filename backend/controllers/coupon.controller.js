@@ -65,6 +65,13 @@ export const createCoupon = async (req, res) => {
     try {
         const { code, discountPercentage, expirationDate, minimumPurchaseAmount, isFirstOrderOnly } = req.body;
 
+        if (discountPercentage < 1) {
+            return res.status(400).json({ message: "Minimum discount percentage must be at least 1%" });
+        }
+        if (discountPercentage > 100) {
+            return res.status(400).json({ message: "Maximum discount percentage cannot exceed 100%" });
+        }
+
         const existingCoupon = await Coupon.findOne({ code: code.toUpperCase() });
         if (existingCoupon) {
             return res.status(400).json({ message: "Coupon code already exists" });
@@ -83,7 +90,7 @@ export const createCoupon = async (req, res) => {
         res.status(201).json(newCoupon);
     } catch (error) {
         console.log("Error in createCoupon controller", error.message);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 
