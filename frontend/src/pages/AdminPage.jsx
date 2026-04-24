@@ -9,11 +9,12 @@ import ProductsList from "../components/ProductsList";
 import UsersManager from "../components/UsersManager"; 
 import CouponManager from "../components/CouponManager";
 import { useProductStore } from "../stores/useProductStore";
+import { useUserStore } from "../stores/useUserStore";
 
 const tabs = [
     { id: "create", label: "Create Product", icon: PlusCircle },
     { id: "products", label: "Products", icon: ShoppingBasket },
-    { id: "coupons", label: "Coupons", icon: Ticket }, // Додана нова вкладка
+    { id: "coupons", label: "Coupons", icon: Ticket }, 
     { id: "users", label: "Users", icon: Users }, 
     { id: "analytics", label: "Analytics", icon: BarChart },
 ];
@@ -22,18 +23,22 @@ const AdminPage = () => {
     const [activeTab, setActiveTab] = useState("create");
     const [editingProduct, setEditingProduct] = useState(null);
     
-    const { fetchAllProducts, totalPages, currentPage } = useProductStore();
+    const { fetchAllProducts, totalPages: productPages, currentPage: productPage } = useProductStore();
+    const { fetchAllUsers, totalPages: userPages, currentPage: userPage } = useUserStore();
 
     useEffect(() => {
-        if (activeTab === "products") {
-            fetchAllProducts(1);
-        }
-    }, [fetchAllProducts, activeTab]);
+        if (activeTab === "products") fetchAllProducts(1);
+        if (activeTab === "users") fetchAllUsers(1);
+    }, [fetchAllProducts, fetchAllUsers, activeTab]);
 
     const handlePageChange = (page) => {
-        fetchAllProducts(page);
+        if (activeTab === "products") fetchAllProducts(page);
+        if (activeTab === "users") fetchAllUsers(page);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
+
+    const currentPaginationPage = activeTab === "products" ? productPage : userPage;
+    const currentTotalPages = activeTab === "products" ? productPages : userPages;
 
     return (
         <div className='min-h-screen relative overflow-hidden bg-white'>
@@ -80,56 +85,52 @@ const AdminPage = () => {
                                     onCancel={() => setEditingProduct(null)} 
                                 />
                             ) : (
-                                <>
-                                    <ProductsList onEdit={setEditingProduct} />
-                                    
-                                    {totalPages > 1 && (
-                                        <div className='flex justify-center items-center mt-8 gap-4 pb-10'>
-                                            <button
-                                                disabled={currentPage === 1}
-                                                onClick={() => handlePageChange(currentPage - 1)}
-                                                className='p-2 rounded-full border border-gray-200 
-                                                disabled:opacity-30 hover:bg-gray-50 transition-colors'
-                                            >
-                                                <ChevronLeft className='text-[#74090A]' size={20} />
-                                            </button>
-
-                                            <div className='flex gap-2'>
-                                                {[...Array(totalPages)].map((_, i) => (
-                                                    <button
-                                                        key={i + 1}
-                                                        onClick={() => handlePageChange(i + 1)}
-                                                        className={`w-8 h-8 rounded text-xs font-bold 
-                                                            transition-all ${
-                                                            currentPage === i + 1
-                                                                ? "bg-[#74090A] text-white"
-                                                                : "bg-gray-50 text-gray-400 hover:bg-gray-100"
-                                                        }`}
-                                                    >
-                                                        {i + 1}
-                                                    </button>
-                                                ))}
-                                            </div>
-
-                                            <button
-                                                disabled={currentPage === totalPages}
-                                                onClick={() => handlePageChange(currentPage + 1)}
-                                                className='p-2 rounded-full border border-gray-200 
-                                                disabled:opacity-30 hover:bg-gray-50 transition-colors'
-                                            >
-                                                <ChevronRight className='text-[#74090A]' size={20} />
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
+                                <ProductsList onEdit={setEditingProduct} />
                             )}
                         </>
                     )}
 
-                    {activeTab === "coupons" && <CouponManager />}
-                    
                     {activeTab === "users" && <UsersManager />}
+                    
+                    {activeTab === "coupons" && <CouponManager />}
                     {activeTab === "analytics" && <AnalyticsTab />}
+
+                    {(activeTab === "products" || activeTab === "users") && !editingProduct && currentTotalPages > 1 && (
+                        <div className='flex justify-center items-center mt-12 gap-4 pb-10'>
+                            <button
+                                disabled={currentPaginationPage === 1}
+                                onClick={() => handlePageChange(currentPaginationPage - 1)}
+                                className='p-2 rounded-full border border-gray-200 bg-white disabled:opacity-30 hover:bg-gray-50 transition-colors shadow-sm'
+                            >
+                                <ChevronLeft className='text-[#74090A]' size={20} />
+                            </button>
+
+                            <div className='flex gap-2'>
+                                {[...Array(currentTotalPages)].map((_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => handlePageChange(i + 1)}
+                                        className={`w-9 h-9 rounded-md text-[11px] font-bold transition-all shadow-sm ${
+                                            currentPaginationPage === i + 1
+                                                ? "bg-[#74090A] text-white shadow-md"
+                                                : "bg-white border border-gray-100 text-neutral-400 hover:bg-neutral-50"
+                                        }`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button
+                                disabled={currentPaginationPage === currentTotalPages}
+                                onClick={() => handlePageChange(currentPaginationPage + 1)}
+                                className='p-2 rounded-full border border-gray-200 
+                                bg-white disabled:opacity-30 hover:bg-gray-50 transition-colors shadow-sm'
+                            >
+                                <ChevronRight className='text-[#74090A]' size={20} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -10,6 +10,8 @@ export const useUserStore = create((set, get) => ({
     allUsers: [], 
     loading: false,
     checkingAuth: true,
+    currentPage: 1,
+    totalPages: 1,
 
     signup: async ({ name, email, password, confirmPassword }) => {
         set({ loading: true });
@@ -44,7 +46,7 @@ export const useUserStore = create((set, get) => ({
     logout: async () => {
         try {
             await axios.post("/auth/logout");
-            set({ user: null, allUsers: [] });
+            set({ user: null, allUsers: [], currentPage: 1, totalPages: 1 });
             
             useWishlistStore.getState().clearWishlist();
         } catch (error) {
@@ -62,12 +64,20 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
-
-    fetchAllUsers: async () => {
+    fetchAllUsers: async (page = 1) => {
         set({ loading: true });
         try {
-            const response = await axios.get("/users"); 
-            set({ allUsers: response.data, loading: false });
+            const response = await axios.get(`/users?page=${page}`); 
+            if (response.data.users) {
+                set({ 
+                    allUsers: response.data.users, 
+                    totalPages: response.data.totalPages, 
+                    currentPage: response.data.currentPage,
+                    loading: false 
+                });
+            } else {
+                set({ allUsers: response.data, loading: false, totalPages: 1 });
+            }
         } catch (error) {
             set({ loading: false });
             toast.error(error.response?.data?.message || "Failed to fetch users");
