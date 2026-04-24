@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
 import { useCartStore } from "../stores/useCartStore"; 
+import { useWishlistStore } from "../stores/useWishlistStore";
 import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal"; 
-import { Filter, ChevronLeft, ChevronRight, RotateCcw, X } from "lucide-react";
+import { Filter, ChevronLeft, ChevronRight, RotateCcw, X, ShoppingBag, Heart } from "lucide-react";
 
 const CategoryPage = () => {
     const { category: urlCategory } = useParams();
@@ -26,6 +27,7 @@ const CategoryPage = () => {
     } = useProductStore();
     
     const { addToCart } = useCartStore(); 
+    const { toggleWishlist: toggleInStore, wishlist } = useWishlistStore();
 
     const [selectedCategory, setSelectedCategory] = useState(urlCategory || "All");
     const [sortOrder, setSortOrder] = useState("default");
@@ -104,153 +106,96 @@ const CategoryPage = () => {
         setIsModalOpen(true);
     };
 
+    const toggleWishlist = (e, product) => {
+        e.stopPropagation(); 
+        if (typeof toggleInStore === "function") {
+            toggleInStore(product);
+        }
+    };
+
     return (
-        <div className='max-w-7xl mx-auto px-6 py-10 min-h-screen bg-white overflow-x-hidden pt-24 md:pt-32'>
-            <header className="mb-12 border-b border-neutral-50 pb-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2 h-4">
-                            {searchTerm && (
-                                <>
-                                    <span className="text-[10px] uppercase tracking-[0.3em] text-[#74090A] 
-                                    font-bold block">
-                                        Search Results for "{searchTerm}"
-                                    </span>
-                                    <button 
-                                        onClick={() => navigate(urlCategory ? `/category/${urlCategory}` : "/category")}
-                                        className="p-1 hover:bg-neutral-100 rounded-full transition-all 
-                                        text-neutral-400 hover:text-[#74090A]"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </>
-                            )}
-                            {!searchTerm && (
-                                <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 
-                                font-bold block">
-                                    Category
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-4">
-                                <h1 className="text-4xl md:text-6xl font-light tracking-tight 
-                                text-neutral-900 font-serif capitalize">
-                                    {selectedCategory}
-                                </h1>
-                                
-                                {(selectedCategory !== "All" || 
-                                  sortOrder !== "default" || 
-                                  priceRange < (maxPriceInDb || 200)) && (
-                                    <button 
-                                        onClick={handleGlobalReset}
-                                        className="group flex items-center gap-2 text-neutral-300 
-                                        hover:text-[#74090A] transition-all"
-                                        title="Reset filters"
-                                    >
-                                        <RotateCcw size={20} className="group-hover:rotate-[-45deg] 
-                                        transition-transform" />
-                                        <span className="text-[9px] uppercase font-bold tracking-tighter 
-                                        opacity-0 group-hover:opacity-100 transition-opacity">Reset</span>
-                                    </button>
-                                )}
-                            </div>
-
-                            <button 
-                                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-full 
-                                border border-neutral-100 hover:bg-neutral-50 transition-all text-neutral-500 hover:text-[#74090A]"
-                            >
-                                <Filter size={16} />
-                                <span className="text-[10px] uppercase font-bold tracking-widest">
-                                    {isFiltersOpen ? "Hide Filters" : "Show Filters"}
-                                </span>
-                            </button>
-                        </div>
+        <div className='max-w-7xl mx-auto px-4 md:px-6 py-2 
+        min-h-screen bg-white overflow-x-hidden pt-12 md:pt-16'>
+            
+            <header className="mb-2 border-b border-neutral-50 pb-2">
+                <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 h-3">
+                        <span className="text-[8px] md:text-[9px] uppercase tracking-[0.2em] 
+                        text-neutral-400 font-bold">
+                            {searchTerm ? `Search Results for "${searchTerm}"` : "Category"}
+                        </span>
                     </div>
-                    
-                    <div className="flex items-center justify-between md:justify-end w-full md:w-auto">
-                        <p className="text-neutral-400 text-[10px] tracking-[0.2em] uppercase">
-                            {products.length} Products displayed
-                        </p>
+
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-2xl md:text-5xl font-light tracking-tight 
+                            text-neutral-900 font-serif capitalize">
+                                {selectedCategory}
+                            </h1>
+                            {(selectedCategory !== "All" || sortOrder !== "default") && (
+                                <button onClick={handleGlobalReset} className="text-neutral-300 hover:text-[#74090A]">
+                                    <RotateCcw size={16} />
+                                </button>
+                            )}
+                        </div>
+
+                        <button 
+                            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                            className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 
+                            rounded-full border border-neutral-100 text-neutral-500 
+                            hover:text-[#74090A] transition-all"
+                        >
+                            <Filter size={14} />
+                            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-widest">
+                                {isFiltersOpen ? "Hide Filter" : "Filter"}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </header>
 
-            <div className="flex flex-col md:flex-row gap-12 relative">
-                {/* Filters Sidebar */}
-                <aside className={`transition-all duration-500 ease-in-out ${
-                    isFiltersOpen 
-                    ? "w-full md:w-72 opacity-100 visible" 
-                    : "w-0 opacity-0 invisible h-0 md:h-auto overflow-hidden"
-                }`}>
-                    <div className="space-y-12 pr-4 min-w-[250px] md:min-w-0">
+            <div className="flex flex-col md:flex-row gap-6 md:gap-12 relative">
+                <aside className={`transition-all duration-500 ease-in-out ${isFiltersOpen ?
+                    "w-full md:w-64 opacity-100 visible mb-6 md:mb-0" : "w-0 opacity-0 invisible h-0 overflow-hidden"}`}>
+                    <div className="space-y-8 md:space-y-12 pr-4 min-w-[250px]">
                         <div>
-                            <h3 className='text-[10px] font-bold text-neutral-400 
-                            uppercase mb-6 tracking-[0.15em] border-b border-neutral-50 pb-2'>
-                                Categories
-                            </h3>
-                            <ul className='space-y-1'>
+                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase 
+                            mb-4 tracking-[0.15em] border-b border-neutral-50 pb-2'>Categories</h3>
+                            <ul className='flex flex-wrap md:flex-col gap-2'>
                                 {categories.map((cat) => (
-                                    <li key={cat}>
+                                    <li key={cat} className="flex-shrink-0">
                                         <button
                                             onClick={() => handleCategoryClick(cat)}
-                                            className={`w-full text-left py-2 px-3 rounded-xl 
-                                                transition-all duration-300 flex justify-between items-center ${
-                                                selectedCategory.toLowerCase() === cat.toLowerCase() 
-                                                ? "text-[#74090A] font-bold bg-[#74090A]/5" 
-                                                : "text-neutral-500 hover:text-black hover:bg-neutral-50"
-                                            }`}
+                                            className={`text-left py-1.5 px-3 rounded-xl transition-all ${selectedCategory.toLowerCase() === cat.toLowerCase() ? "text-[#74090A] font-bold bg-[#74090A]/5" : "text-neutral-500 hover:text-black"}`}
                                         >
-                                            <span className="text-sm tracking-wide">{cat}</span>
-                                            {selectedCategory.toLowerCase() === cat.toLowerCase() &&
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#74090A]" />}
+                                            <span className="text-xs md:text-sm tracking-wide">{cat}</span>
                                         </button>
                                     </li>
                                 ))}
                             </ul>
                         </div>
 
-                        <div>
-                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase mb-4 tracking-[0.15em]'>
-                                Sort By
-                            </h3>
-                            <select 
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value)}
-                                className='w-full p-3 border-b border-neutral-200 
-                                bg-transparent text-sm text-neutral-600 outline-none focus:border-[#74090A]'
-                            >
-                                <option value="default">Newest First</option>
-                                <option value="az">A to Z</option>
-                                <option value="za">Z to A</option>
-                                <option value="low-high">Price: Low to High</option>
-                                <option value="high-low">Price: High to Low</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className='text-[10px] font-bold text-neutral-400 uppercase tracking-[0.15em]'>
-                                    Max Price
-                                </h3>
-                                <span className="text-[#74090A] font-bold text-sm">${priceRange}</span>
+                        <div className="grid grid-cols-2 md:grid-cols-1 gap-6">
+                            <div>
+                                <h3 className='text-[10px] font-bold text-neutral-400 
+                                uppercase mb-3 tracking-[0.15em]'>Sort</h3>
+                                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className='w-full py-2 border-b border-neutral-200 bg-transparent text-xs outline-none'>
+                                    <option value="default">Newest First</option>
+                                    <option value="az">A to Z</option>
+                                    <option value="za">Z to A</option>
+                                    <option value="low-high">Price: Low to High</option>
+                                    <option value="high-low">Price: High to Low</option>
+                                </select>
                             </div>
-                            <input
-                                type='range' 
-                                min='0' 
-                                max={maxPriceInDb || 500}
-                                step='1'
-                                value={priceRange}
-                                onChange={(e) => setPriceRange(Number(e.target.value))}
-                                className='w-full h-[2px] bg-neutral-100 appearance-none 
-                                cursor-pointer accent-[#74090A]'
-                            />
-                            <div className="flex justify-between mt-2 text-[9px] 
-                            text-neutral-300 font-bold uppercase tracking-tighter">
-                                <span>$0</span>
-                                <span>Max: ${maxPriceInDb || 500}</span>
+
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className='text-[10px] font-bold text-neutral-400 uppercase tracking-[0.15em]'>
+                                        Max Price
+                                    </h3>
+                                    <span className="text-[#74090A] font-bold text-sm">${priceRange}</span>
+                                </div>
+                                <input type='range' min='0' max={maxPriceInDb || 500} step='1' value={priceRange} onChange={(e) => setPriceRange(Number(e.target.value))} className='w-full h-[2px] bg-neutral-100 appearance-none accent-[#74090A]' />
                             </div>
                         </div>
                     </div>
@@ -259,85 +204,66 @@ const CategoryPage = () => {
                 <main className='flex-1 w-full'>
                     {loading ? (
                         <div className="flex justify-center py-20 text-neutral-300 
-                        animate-pulse tracking-widest text-[10px] uppercase">
-                            Discovering beauty...
-                        </div>
+                        animate-pulse tracking-widest text-[10px] uppercase">Loading...</div>
                     ) : products.length > 0 ? (
                         <>
-                            <div className={`grid gap-x-8 gap-y-16 transition-all duration-500 ${
-                                isFiltersOpen 
-                                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" 
-                                : "grid-cols-1 sm:grid-cols-3 lg:grid-cols-4"
-                            }`}>
+                                <div className={`grid gap-x-3 md:gap-x-8 gap-y-10 md:gap-y-16 transition-all 
+                                duration-500 grid-cols-2 ${isFiltersOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
                                 {products.map((product) => (
-                                    <div 
-                                        key={product._id} 
-                                        onClick={() => handleOpenModal(product)} 
-                                        className="cursor-pointer"
-                                    >
-                                        <ProductCard product={product} />
+                                    <div key={product._id} className="flex flex-col group h-full">
+                                        <div onClick={() => handleOpenModal(product)} className="cursor-pointer flex-grow">
+                                            <ProductCard product={product} />
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-1.5 mt-3 md:hidden px-0.5">
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                                                className="flex-1 bg-[#74090A] text-white py-2 rounded-lg 
+                                                flex items-center justify-center gap-2 
+                                                active:scale-95 transition-transform"
+                                            >
+                                                <ShoppingBag size={14} />
+                                                <span className="text-[10px] font-bold uppercase tracking-tighter">
+                                                    Add
+                                                </span>
+                                            </button>
+                                            <button 
+                                                onClick={(e) => toggleWishlist(e, product)}
+                                                className={`p-2 rounded-lg border transition-colors ${wishlist.some(item => item._id === product._id) ? "bg-[#74090A]/10 border-[#74090A] text-[#74090A]" : "border-neutral-100 text-neutral-400"}`}
+                                            >
+                                                <Heart size={16} fill={wishlist.some(item => item._id === product._id) ? "currentColor" : "none"} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
 
+                            {/* Pagination */}
                             {totalPages > 1 && (
-                                <div className='flex justify-center items-center mt-20 gap-4 pb-10'>
-                                    <button
-                                        disabled={currentPage === 1}
-                                        onClick={() => handlePageChange(currentPage - 1)}
-                                            className='p-2 rounded-md border border-neutral-100 
-                                        disabled:opacity-30 hover:bg-neutral-50 transition-colors'
-                                    >
-                                        <ChevronLeft className='text-[#74090A]' size={20} />
-                                    </button>
-                                    <div className='flex gap-2'>
+                                <div className='flex justify-center items-center mt-12 gap-2 md:gap-4 pb-10'>
+                                    <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} className='p-2 disabled:opacity-30'><ChevronLeft size={18} /></button>
+                                    <div className='flex gap-1'>
                                         {[...Array(totalPages)].map((_, i) => (
-                                            <button
-                                                key={i + 1}
-                                                onClick={() => handlePageChange(i + 1)}
-                                                className={`w-9 h-9 rounded-md text-[11px] 
-                                                    font-bold transition-all ${
-                                                    currentPage === i + 1
-                                                        ? "bg-[#74090A] text-white shadow-sm"
-                                                        : "bg-neutral-50 text-neutral-400 hover:bg-neutral-100"
-                                                }`}
-                                            >
+                                            <button key={i + 1} onClick={() => handlePageChange(i + 1)} className={`w-8 h-8 md:w-9 md:h-9 rounded-md text-[10px] font-bold ${currentPage === i + 1 ? "bg-[#74090A] text-white" : "bg-neutral-50 text-neutral-400"}`}>
                                                 {i + 1}
                                             </button>
                                         ))}
                                     </div>
-                                    <button
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => handlePageChange(currentPage + 1)}
-                                            className='p-2 rounded-md border border-neutral-100 
-                                        disabled:opacity-30 hover:bg-neutral-50 transition-colors'
-                                    >
-                                        <ChevronRight className='text-[#74090A]' size={20} />
-                                    </button>
+                                    <button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)} className='p-2 disabled:opacity-30'><ChevronRight size={18} /></button>
                                 </div>
                             )}
                         </>
                     ) : (
-                                <div className="text-center py-32 bg-neutral-50 rounded-[40px] border 
-                        border-dashed border-neutral-200">
-                            <p className="text-neutral-400 font-light italic">
-                                {searchTerm ? `No results for "${searchTerm}"` : "No products found for these criteria."}
-                            </p>
-                                    <button onClick={handleGlobalReset} className="mt-4 text-[#74090A] 
-                            text-[10px] font-bold uppercase tracking-widest hover:underline transition-all">
-                                Clear All
-                            </button>
+                        <div className="text-center py-20 bg-neutral-50 
+                        rounded-[20px] border border-dashed border-neutral-200">
+                            <p className="text-neutral-400 font-light italic text-sm">No products found.</p>
                         </div>
                     )}
                 </main>
             </div>
 
-            <ProductModal 
-                product={selectedProduct} 
-                isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
-                onAddToCart={addToCart} 
-            />
+            <ProductModal product={selectedProduct} isOpen={isModalOpen} onClose={() =>
+            setIsModalOpen(false)} onAddToCart={addToCart} />
         </div>
     );
 };
