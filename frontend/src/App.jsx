@@ -11,6 +11,8 @@ import ContactPage from "./pages/ContactPage";
 import CartPage from "./pages/CartPage";
 import WishlistPage from "./pages/WishlistPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
+import PurchaseCancelPage from "./pages/PurchaseCancelPage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -65,6 +67,11 @@ function App() {
             <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
             
             <Route path='*' element={<Navigate to='/' />} />
+            <Route
+						path='/purchase-success'
+						element={user ? <PurchaseSuccessPage /> : <Navigate to='/login' />}
+					/>
+					<Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
           </Routes>
         </div>
       </div>
