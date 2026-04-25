@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { UserPlus, Mail, User, Lock, Loader } from "lucide-react";
+import { UserPlus, Mail, User, Lock, Loader, Phone } from "lucide-react"; // Додано Phone
 import { motion } from "framer-motion";
 import { useUserStore } from "../stores/useUserStore";
 
@@ -8,6 +8,7 @@ const SignUpPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -48,6 +49,7 @@ const SignUpPage = () => {
             {[
               { id: 'name', label: 'Full name', icon: User, placeholder: 'John Doe', type: 'text', autoComplete: 'name' },
               { id: 'email', label: 'Email', icon: Mail, placeholder: 'example@example.com', type: 'email', autoComplete: 'email' },
+              { id: 'phone', label: 'Phone Number', icon: Phone, placeholder: '+1 234 567 890', type: 'tel', autoComplete: 'tel' }, // Нове поле
               { id: 'password', label: 'Password', icon: Lock, placeholder: '••••••••', type: 'password', min: 6, autoComplete: 'new-password' },
               { id: 'confirmPassword', label: 'Confirm password', icon: Lock, placeholder: '••••••••', type: 'password', min: 6, autoComplete: 'new-password' },
             ].map((field) => (
@@ -80,7 +82,7 @@ const SignUpPage = () => {
               className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#74090A] hover:bg-[#5a0708] transition duration-150'
               disabled={loading}
             >
-              {loading ? <Loader className='animate-spin' /> : "Register"}
+              {loading ? <Loader className='animate-spin' size={20} /> : "Register"}
             </button>
           </form>
         </div>

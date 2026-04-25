@@ -37,23 +37,23 @@ export const createCheckoutSession = async (req, res) => {
             };
         });
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ["card"],
-            line_items: lineItems,
-            mode: "payment",
-            customer_email: req.user.email,
-            success_url: `${process.env.CLIENT_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
-            metadata: {
-                userId: req.user._id.toString(),
-                couponCode: couponCode || "",
-                products: JSON.stringify(products.map(p => ({ 
-                    id: p._id, 
-                    q: p.quantity, 
-                    p: p.price 
-                })))
-            },
-        });
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: lineItems,
+        mode: "payment",
+        customer_email: req.user.email,
+        phone_number_collection: {
+            enabled: true, 
+        },
+        success_url: `${process.env.CLIENT_URL}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
+        metadata: {
+            userId: req.user._id.toString(),
+            userPhone: req.user.phone || "", 
+            couponCode: couponCode || "",
+            products: JSON.stringify(products.map(p => ({ id: p._id, q: p.quantity, p: p.price })))
+        },
+    });
 
         res.status(200).json({ id: session.id, url: session.url });
     } catch (error) {
