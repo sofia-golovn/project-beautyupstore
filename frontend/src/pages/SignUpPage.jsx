@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { UserPlus, Mail, User, Lock, Loader, Phone } from "lucide-react"; // Додано Phone
+import { UserPlus, Mail, User, Lock, Loader, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { useUserStore } from "../stores/useUserStore";
 
