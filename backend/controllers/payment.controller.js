@@ -76,7 +76,7 @@ export const checkoutSuccess = async (req, res) => {
             if (session.metadata.couponCode) {
                 await Coupon.findOneAndUpdate(
                     { code: session.metadata.couponCode },
-                    { isActive: false }
+                    { $inc: { uses: 1 } }
                 );
             }
 
