@@ -17,6 +17,8 @@ const CategoryPage = () => {
 
     const { 
         products, 
+        categories, 
+        fetchAllCategories, 
         fetchProductsByCategory, 
         fetchAllProducts, 
         fetchMaxPrice,
@@ -37,15 +39,17 @@ const CategoryPage = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const categories = ["All", "Face", "Body", "Hair", "Sun", "Accessories", "Sets"];
+    useEffect(() => {
+        const loadInitialData = async () => {
+            await fetchMaxPrice();
+            await fetchAllCategories();
+        };
+        loadInitialData();
+    }, [fetchMaxPrice, fetchAllCategories]);
 
     useEffect(() => {
-        const loadMaxPrice = async () => {
-            const max = await fetchMaxPrice();
-            if (max) setPriceRange(max);
-        };
-        loadMaxPrice();
-    }, [fetchMaxPrice]); 
+        if (maxPriceInDb) setPriceRange(maxPriceInDb);
+    }, [maxPriceInDb]);
 
     useEffect(() => {
         setPage(1); 
@@ -115,15 +119,13 @@ const CategoryPage = () => {
         }
     };
 
-    const isFiltered = selectedCategory !== "All" || sortOrder !== "default" || (maxPriceInDb && priceRange !== maxPriceInDb);
+    const isTechnicalFiltersApplied = selectedCategory !== "All" || sortOrder !== "default" || (maxPriceInDb && priceRange !== maxPriceInDb);
 
     return (
-        <div className='max-w-7xl mx-auto px-4 md:px-6 py-2 
-        min-h-screen bg-white overflow-x-hidden pt-12 md:pt-16'>
+        <div className='max-w-7xl mx-auto px-4 md:px-6 py-2 min-h-screen bg-white overflow-x-hidden pt-12 md:pt-16'>
             
             <header className="mb-2 border-b border-neutral-50 pb-2">
                 <div className="flex flex-col gap-1">
-                    {/* Секція пошуку з хрестиком */}
                     <div className="flex items-center gap-2 h-3">
                         <span className="text-[8px] md:text-[9px] uppercase tracking-[0.2em] 
                         text-neutral-400 font-bold">
@@ -142,11 +144,11 @@ const CategoryPage = () => {
 
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <h1 className="text-2xl md:text-5xl font-light tracking-tight 
-                            text-neutral-900 font-serif capitalize">
+                            <h1 className="text-2xl md:text-5xl font-light tracking-tight text-neutral-900 
+                            font-serif capitalize">
                                 {selectedCategory}
                             </h1>
-                            {isFiltered && (
+                            {isTechnicalFiltersApplied && (
                                 <button 
                                     onClick={handleGlobalReset} 
                                     className="text-neutral-300 hover:text-[#74090A] transition-all 
@@ -160,9 +162,8 @@ const CategoryPage = () => {
 
                         <button 
                             onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-                            className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 
-                            rounded-full border border-neutral-100 text-neutral-500 
-                            hover:text-[#74090A] transition-all"
+                            className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border 
+                            border-neutral-100 text-neutral-500 hover:text-[#74090A] transition-all"
                         >
                             <Filter size={14} />
                             <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-widest">
@@ -175,11 +176,12 @@ const CategoryPage = () => {
 
             <div className="flex flex-col md:flex-row gap-6 md:gap-12 relative">
                 <aside className={`transition-all duration-500 ease-in-out ${isFiltersOpen ?
-                    "w-full md:w-64 opacity-100 visible mb-6 md:mb-0" : "w-0 opacity-0 invisible h-0 overflow-hidden"}`}>
+                    "w-full md:w-64 opacity-100 visible mb-6 md:mb-0" :
+                    "w-0 opacity-0 invisible h-0 overflow-hidden"}`}>
                     <div className="space-y-8 md:space-y-12 pr-4 min-w-[250px]">
                         <div>
-                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase 
-                            mb-4 tracking-[0.15em] border-b border-neutral-50 pb-2'>Categories</h3>
+                            <h3 className='text-[10px] font-bold text-neutral-400 uppercase mb-4 
+                            tracking-[0.15em] border-b border-neutral-50 pb-2'>Categories</h3>
                             <ul className='flex flex-wrap md:flex-col gap-2'>
                                 {categories.map((cat) => (
                                     <li key={cat} className="flex-shrink-0">
@@ -196,8 +198,9 @@ const CategoryPage = () => {
 
                         <div className="grid grid-cols-2 md:grid-cols-1 gap-6">
                             <div>
-                                <h3 className='text-[10px] font-bold text-neutral-400 
-                                uppercase mb-3 tracking-[0.15em]'>Sort</h3>
+                                <h3 className='text-[10px] font-bold text-neutral-400 uppercase mb-3 tracking-[0.15em]'>
+                                    Sort
+                                </h3>
                                 <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}
                                     className='w-full py-2 border-b border-neutral-200 bg-transparent text-xs 
                                     outline-none'>
@@ -232,24 +235,24 @@ const CategoryPage = () => {
 
                 <main className='flex-1 w-full'>
                     {loading ? (
-                        <div className="flex justify-center py-20 text-neutral-300 
-                        animate-pulse tracking-widest text-[10px] uppercase">Loading...</div>
+                        <div className="flex justify-center py-20 text-neutral-300 animate-pulse tracking-widest 
+                        text-[10px] uppercase">Loading...</div>
                     ) : products.length > 0 ? (
                         <>
-                            <div className={`grid gap-x-3 md:gap-x-8 gap-y-10 md:gap-y-16 transition-all 
-                            duration-500 grid-cols-2 ${isFiltersOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
+                                <div className={`grid gap-x-3 md:gap-x-8 gap-y-10 md:gap-y-16 transition-all duration-500 
+                                grid-cols-2 ${isFiltersOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
                                 {products.map((product) => (
                                     <div key={product._id} className="flex flex-col group h-full">
-                                        <div onClick={() => handleOpenModal(product)} className="cursor-pointer flex-grow">
+                                        <div onClick={() => handleOpenModal(product)}
+                                            className="cursor-pointer flex-grow">
                                             <ProductCard product={product} />
                                         </div>
                                         
                                         <div className="flex items-center gap-1.5 mt-3 md:hidden px-0.5">
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                                                className="flex-1 bg-[#74090A] text-white py-2 rounded-lg 
-                                                flex items-center justify-center gap-2 
-                                                active:scale-95 transition-transform"
+                                                className="flex-1 bg-[#74090A] text-white py-2 rounded-lg flex 
+                                                items-center justify-center gap-2 active:scale-95 transition-transform"
                                             >
                                                 <ShoppingBag size={14} />
                                                 <span className="text-[10px] font-bold uppercase tracking-tighter">
@@ -267,13 +270,13 @@ const CategoryPage = () => {
                                 ))}
                             </div>
 
-                            {/* Pagination */}
                             {totalPages > 1 && (
                                 <div className='flex justify-center items-center mt-12 gap-2 md:gap-4 pb-10'>
                                     <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} className='p-2 disabled:opacity-30'><ChevronLeft size={18} /></button>
                                     <div className='flex gap-1'>
                                         {[...Array(totalPages)].map((_, i) => (
-                                            <button key={i + 1} onClick={() => handlePageChange(i + 1)} className={`w-8 h-8 md:w-9 md:h-9 rounded-md text-[10px] font-bold ${currentPage === i + 1 ? "bg-[#74090A] text-white" : "bg-neutral-50 text-neutral-400"}`}>
+                                            <button key={i + 1} onClick={() => handlePageChange(i + 1)}
+                                                className={`w-8 h-8 md:w-9 md:h-9 rounded-md text-[10px] font-bold ${currentPage === i + 1 ? "bg-[#74090A] text-white" : "bg-neutral-50 text-neutral-400"}`}>
                                                 {i + 1}
                                             </button>
                                         ))}
@@ -283,16 +286,15 @@ const CategoryPage = () => {
                             )}
                         </>
                     ) : (
-                        <div className="text-center py-20 bg-neutral-50 
-                        rounded-[20px] border border-dashed border-neutral-200">
+                         <div className="text-center py-20 bg-neutral-50 rounded-[20px] border border-dashed 
+                        border-neutral-200">
                             <p className="text-neutral-400 font-light italic text-sm">No products found.</p>
                         </div>
                     )}
                 </main>
             </div>
 
-            <ProductModal product={selectedProduct} isOpen={isModalOpen} onClose={() =>
-            setIsModalOpen(false)} onAddToCart={addToCart} />
+            <ProductModal product={selectedProduct} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onAddToCart={addToCart} />
         </div>
     );
 };

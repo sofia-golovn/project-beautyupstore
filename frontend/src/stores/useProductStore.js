@@ -5,7 +5,7 @@ import axios from "../lib/axios";
 export const useProductStore = create((set, get) => ({
     products: [],
     featuredProducts: [],
-    categories: [], 
+    categories: ["All"],
     loading: false,
     
     currentPage: 1,
@@ -108,37 +108,40 @@ export const useProductStore = create((set, get) => ({
 
     fetchAllCategories: async () => {
         try {
-            const response = await axios.get("/products/categories");
-            set({ categories: response.data });
-        } catch (error) {
-            const uniqueCategories = [...new Set(get().products.map(p => p.category))];
-            if (uniqueCategories.length > 0) {
-                set({ categories: uniqueCategories });
-            }
-        }
+        const response = await axios.get("/categories"); 
+        const categoryNames = response.data.map(cat => cat.name);
+        
+        set({ categories: ["All", ...categoryNames] });
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        set({ categories: ["All"] });
+    }
     },
 
     createCategory: async (categoryName) => {
+        set({ loading: true });
         try {
-            const res = await axios.post("/products/categories", { name: categoryName });
-            const newCat = res.data.name || res.data;
-
-            set((state) => ({
-                categories: [...state.categories, newCat],
-            }));
-            toast.success("Category permanently saved");
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to save category to database");
-        }
+        const res = await axios.post("/categories", { name: categoryName });
+        
+        set((state) => ({
+            categories: [...state.categories, res.data.name],
+            loading: false,
+        }));
+        toast.success("Category created successfully");
+    } catch (error) {
+        set({ loading: false });
+        toast.error(error.response?.data?.message || "Error creating category");
+    }
     },
 
     deleteCategory: async (categoryName) => {
         try {
+            await axios.delete(`/categories/${categoryName}`);
+            
             set((state) => ({
-                categories: state.categories.filter((c) => c !== categoryName),
+                categories: state.categories.filter((cat) => cat !== categoryName),
             }));
-            toast.success(`Category "${categoryName}" removed`);
+            toast.success("Category deleted");
         } catch (error) {
             toast.error("Failed to delete category");
         }

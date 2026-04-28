@@ -11,6 +11,7 @@ import paymentRoutes from "./routes/payment.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import userRoutes from "./routes/user.route.js";
 import wishlistRoutes from "./routes/wishlist.route.js";
+import categoryRoutes from "./routes/category.route.js";
 
 import { connectDB } from "./lib/db.js";
 
@@ -34,6 +35,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/categories", categoryRoutes);
 
 
 app.listen(PORT, async () => {

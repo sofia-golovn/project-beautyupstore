@@ -47,7 +47,6 @@ const CreateProductForm = () => {
             setNewProduct({ name: "", description: "", price: "", category: "", image: "" });
         } catch (error) {
             console.error("Full error object:", error);
-            console.log("Server response:", error.response?.data);
         }
     };
 
@@ -55,7 +54,8 @@ const CreateProductForm = () => {
         if (!newCategoryName.trim()) return;
         try {
             await createCategory(newCategoryName.trim());
-            setNewProduct({ ...newProduct, category: newCategoryName.trim().toLowerCase() });
+            
+            setNewProduct({ ...newProduct, category: newCategoryName.trim() });
             setNewCategoryName("");
             setIsAddingNewCategory(false);
         } catch (error) {
@@ -64,9 +64,9 @@ const CreateProductForm = () => {
     };
 
     const handleDeleteCategory = () => {
-        if (!newProduct.category) return;
+        if (!newProduct.category || newProduct.category === "All") return;
         
-        if (window.confirm(`Ви впевнені, що хочете видалити категорію "${newProduct.category}"?`)) {
+        if (window.confirm(`Are you sure you want to delete the category? "${newProduct.category}"?`)) {
             deleteCategory(newProduct.category);
             setNewProduct({ ...newProduct, category: "" });
         }
@@ -95,7 +95,6 @@ const CreateProductForm = () => {
             </h2>
             
             <form onSubmit={handleSubmit} className='space-y-5'>
-                {/* Product Name */}
                 <div>
                     <label htmlFor='name' className='block text-sm font-medium text-gray-700 mb-1'>
                         Product Name
@@ -112,7 +111,6 @@ const CreateProductForm = () => {
                     />
                 </div>
 
-                {/* Description */}
                 <div>
                     <label htmlFor='description' className='block text-sm font-medium text-gray-700 mb-1'>
                         Description
@@ -129,7 +127,6 @@ const CreateProductForm = () => {
                     />
                 </div>
 
-                {/* Price */}
                 <div>
                     <label htmlFor='price' className='block text-sm font-medium text-gray-700 mb-1'>
                         Price
@@ -147,7 +144,6 @@ const CreateProductForm = () => {
                     />
                 </div>
 
-                {/* Category */}
                 <div>
                     <div className="flex justify-between items-center mb-1">
                         <label htmlFor='category' className='block text-sm font-medium text-gray-700'>
@@ -158,12 +154,8 @@ const CreateProductForm = () => {
                             onClick={() => setIsAddingNewCategory(!isAddingNewCategory)}
                             className="flex items-center text-xs font-semibold text-[#74090A] hover:text-[#5a0708]"
                         >
-                            {isAddingNewCategory ? <><X size={14} className="mr-1" />
-                                Cancel
-                            </>
-                                :
-                                <>
-                                <Plus size={14} className="mr-1" /> Add New</>}
+                            {isAddingNewCategory ? <><X size={14} className="mr-1" /> Cancel</> : <><Plus size={14}
+                            className="mr-1" /> Add New</>}
                         </button>
                     </div>
 
@@ -175,7 +167,7 @@ const CreateProductForm = () => {
                                 exit={{ opacity: 0, height: 0 }}
                                 className="overflow-hidden"
                             >
-                                <div className="flex gap-2 mb-3 p-2 bg-gray-50 rounded-md border border-dashed 
+                                <div className="flex gap-2 mb-3 p-2 bg-gray-50 rounded-md border border-dashed
                                 border-gray-300">
                                     <input
                                         type="text"
@@ -207,16 +199,17 @@ const CreateProductForm = () => {
                             required
                         >
                             <option value=''>Select a category</option>
-                            {categories?.map((cat) => (
+                            {categories?.filter(c => c !== "All").map((cat) => (
                                 <option key={cat} value={cat}>{cat}</option>
                             ))}
                         </select>
 
-                        {newProduct.category && (
+                        {newProduct.category && newProduct.category !== "All" && (
                             <button
                                 type="button"
                                 onClick={handleDeleteCategory}
-                                className="p-2 text-gray-400 hover:text-red-600 border border-gray-300 rounded-md"
+                                className="p-2 text-gray-400 hover:text-red-600 border border-gray-300 
+                                rounded-md transition-colors"
                             >
                                 <Trash2 size={18} />
                             </button>
@@ -224,14 +217,13 @@ const CreateProductForm = () => {
                     </div>
                 </div>
 
-                {/* Image Upload */}
                 <div className='flex items-center pt-2'>
-                    <input type='file' id='image' className='sr-only' accept='image/*'
-                        onChange={handleImageChange} />
+                    <input type='file' id='image' className='sr-only' accept='image/*' onChange={handleImageChange} />
                     <label
                         htmlFor='image'
                         className='cursor-pointer bg-gray-50 py-2 px-4 border border-gray-300 rounded-md 
-                        shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center'
+                        shadow-sm text-sm font-medium text-gray-700 
+                        hover:bg-gray-100 flex items-center transition-colors'
                     >
                         <Upload className='h-4 w-4 mr-2 text-[#74090A]' />
                         Upload Image
@@ -241,12 +233,11 @@ const CreateProductForm = () => {
                     )}
                 </div>
 
-                {/* Submit Button */}
                 <button
                     type='submit'
                     className='w-full flex justify-center py-2.5 px-4 border border-transparent 
-                    rounded-md shadow-sm text-sm font-medium text-white bg-[#74090A] hover:bg-[#5a0708] 
-                    disabled:opacity-50 mt-4'
+                    rounded-md shadow-sm text-sm font-medium text-white bg-[#74090A] 
+                    hover:bg-[#5a0708] disabled:opacity-50 mt-4 transition-colors'
                     disabled={loading}
                 >
                     {loading ? (
