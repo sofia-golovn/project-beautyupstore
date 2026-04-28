@@ -52,7 +52,7 @@ export const getProductsByCategory = async (req, res) => {
         const { page = 1, limit = 12, minPrice = 0, maxPrice, sort, search } = req.query;
 
         let filter = { 
-            category: category, 
+            category: { $regex: new RegExp(`^${category}$`, "i") }, 
             price: { $gte: Number(minPrice) } 
         };
         
@@ -69,8 +69,9 @@ export const getProductsByCategory = async (req, res) => {
         else if (sort === "za") sortOptions = { name: -1 };
         else if (sort === "low-high") sortOptions = { price: 1 };
         else if (sort === "high-low") sortOptions = { price: -1 };
+        else sortOptions = { createdAt: -1 }; 
 
-        const skip = (page - 1) * limit;
+        const skip = (Number(page) - 1) * Number(limit);
 
         const products = await Product.find(filter)
             .sort(sortOptions)
@@ -81,11 +82,12 @@ export const getProductsByCategory = async (req, res) => {
 
         res.json({
             products,
-            totalPages: Math.ceil(totalProducts / limit),
+            totalPages: Math.ceil(totalProducts / Number(limit)),
             currentPage: Number(page),
             totalProducts
         });
     } catch (error) {
+        console.error("Error in getProductsByCategory:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
