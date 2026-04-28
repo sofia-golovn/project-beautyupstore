@@ -5,12 +5,12 @@ import FeaturedProducts from "../components/FeaturedProducts";
 import CategoryItem from "../components/CategoryItem";
 
 const categories = [
-    { id: 1, href: "/category/face", name: "Face", imageUrl: "/face.jpg" },
-    { id: 2, href: "/category/body", name: "Body", imageUrl: "/body.jpg" },
-    { id: 3, href: "/category/hair", name: "Hair", imageUrl: "/hair.jpg" },
-    { id: 4, href: "/category/sun", name: "Sun", imageUrl: "/sun.jpg" },
-    { id: 5, href: "/category/accessories", name: "Accessories", imageUrl: "/accessories.jpg" },
-    { id: 6, href: "/category/sets", name: "Sets", imageUrl: "/sets.jpg" },
+    { id: 1, href: "/category/face", name: "Face", imageUrl: "/face.png" },
+    { id: 2, href: "/category/body", name: "Body", imageUrl: "/body.png" },
+    { id: 3, href: "/category/hair", name: "Hair", imageUrl: "/hair.png" },
+    { id: 4, href: "/category/sun", name: "Sun", imageUrl: "/sun.png" },
+    { id: 5, href: "/category/accessories", name: "Accessories", imageUrl: "/accessories.png" },
+    { id: 6, href: "/category/sets", name: "Sets", imageUrl: "/sets.png" },
 ];
 
 const HomePage = () => {
