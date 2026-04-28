@@ -12,6 +12,7 @@ import analyticsRoutes from "./routes/analytics.route.js";
 import userRoutes from "./routes/user.route.js";
 import wishlistRoutes from "./routes/wishlist.route.js";
 import categoryRoutes from "./routes/category.route.js";
+import orderRoutes from "./routes/order.route.js";
 
 import { connectDB } from "./lib/db.js";
 
@@ -36,6 +37,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/orders", orderRoutes);
 
 
 app.listen(PORT, async () => {

@@ -1,4 +1,4 @@
-import { BarChart, PlusCircle, ShoppingBasket, Users, ChevronLeft, ChevronRight, Ticket } from "lucide-react"; 
+import { BarChart, PlusCircle, ShoppingBasket, Users, ChevronLeft, ChevronRight, Ticket, Package } from "lucide-react"; 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
@@ -8,37 +8,51 @@ import EditProductForm from "../components/EditProductForm";
 import ProductsList from "../components/ProductsList";
 import UsersManager from "../components/UsersManager"; 
 import CouponManager from "../components/CouponManager";
+import OrdersList from "../components/OrdersList";
 import { useProductStore } from "../stores/useProductStore";
 import { useUserStore } from "../stores/useUserStore";
+import { useOrderStore } from "../stores/useOrderStore";
 
 const tabs = [
     { id: "create", label: "Create Product", icon: PlusCircle },
-    { id: "products", label: "Products", icon: ShoppingBasket },
     { id: "coupons", label: "Coupons", icon: Ticket }, 
+    { id: "products", label: "Products", icon: ShoppingBasket },
     { id: "users", label: "Users", icon: Users }, 
+    { id: "orders", label: "Orders", icon: Package }, 
     { id: "analytics", label: "Analytics", icon: BarChart },
 ];
 
 const AdminPage = () => {
     const [activeTab, setActiveTab] = useState("create");
+    const [orderFilter] = useState("All");
     const [editingProduct, setEditingProduct] = useState(null);
     
     const { fetchAllProducts, totalPages: productPages, currentPage: productPage } = useProductStore();
     const { fetchAllUsers, totalPages: userPages, currentPage: userPage } = useUserStore();
+    const { fetchAllOrders, totalPages: orderPages, currentPage: orderPage } = useOrderStore();
 
     useEffect(() => {
         if (activeTab === "products") fetchAllProducts(1);
         if (activeTab === "users") fetchAllUsers(1);
-    }, [fetchAllProducts, fetchAllUsers, activeTab]);
+        if (activeTab === "orders") fetchAllOrders(1);
+    }, [fetchAllProducts, fetchAllUsers, fetchAllOrders, activeTab]);
 
     const handlePageChange = (page) => {
         if (activeTab === "products") fetchAllProducts(page);
         if (activeTab === "users") fetchAllUsers(page);
+        if (activeTab === "orders") fetchAllOrders(page, orderFilter);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const currentPaginationPage = activeTab === "products" ? productPage : userPage;
-    const currentTotalPages = activeTab === "products" ? productPages : userPages;
+    const currentPaginationPage = 
+        activeTab === "products" ? productPage : 
+        activeTab === "users" ? userPage : 
+        orderPage;
+
+    const currentTotalPages = 
+        activeTab === "products" ? productPages : 
+        activeTab === "users" ? userPages : 
+        orderPages;
 
     return (
         <div className='min-h-screen relative overflow-hidden bg-white'>
@@ -76,7 +90,7 @@ const AdminPage = () => {
 
                 <div className="bg-white rounded-lg">
                     {activeTab === "create" && <CreateProductForm />}
-                    
+                    {activeTab === "coupons" && <CouponManager />}
                     {activeTab === "products" && (
                         <>
                             {editingProduct ? (
@@ -91,16 +105,15 @@ const AdminPage = () => {
                     )}
 
                     {activeTab === "users" && <UsersManager />}
-                    
-                    {activeTab === "coupons" && <CouponManager />}
+                    {activeTab === "orders" && <OrdersList />}
                     {activeTab === "analytics" && <AnalyticsTab />}
-
-                    {(activeTab === "products" || activeTab === "users") && !editingProduct && currentTotalPages > 1 && (
+                    {(activeTab === "products" || activeTab === "users" || activeTab === "orders") && !editingProduct && currentTotalPages > 1 && (
                         <div className='flex justify-center items-center mt-12 gap-4 pb-10'>
                             <button
                                 disabled={currentPaginationPage === 1}
                                 onClick={() => handlePageChange(currentPaginationPage - 1)}
-                                className='p-2 rounded-full border border-gray-200 bg-white disabled:opacity-30 hover:bg-gray-50 transition-colors shadow-sm'
+                                className='p-2 rounded-full border border-gray-200 bg-white disabled:opacity-30 
+                                hover:bg-gray-50 transition-colors shadow-sm'
                             >
                                 <ChevronLeft className='text-[#74090A]' size={20} />
                             </button>
