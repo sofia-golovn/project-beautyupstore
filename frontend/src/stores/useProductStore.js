@@ -13,6 +13,7 @@ export const useProductStore = create((set, get) => ({
     totalProducts: 0,
     maxPriceInDb: 0,
 
+    setPage: (page) => set({ currentPage: page }),
     setProducts: (products) => set({ products }),
 
     fetchMaxPrice: async () => {
@@ -31,7 +32,6 @@ export const useProductStore = create((set, get) => ({
     fetchAllProducts: async (page = 1, filters = {}, isPagination = false) => {
         if (!isPagination) set({ loading: true });
         try {
-            // ДОДАНО: search витягується з filters
             const { minPrice, maxPrice, sort, search } = filters;
             const params = new URLSearchParams({
                 page,
@@ -39,7 +39,7 @@ export const useProductStore = create((set, get) => ({
                 ...(minPrice && { minPrice }),
                 ...(maxPrice && { maxPrice }),
                 ...(sort && { sort }),
-                ...(search && { search }) // ДОДАНО: пошук йде в параметри запиту
+                ...(search && { search }) 
             });
 
             const response = await axios.get(`/products?${params.toString()}`);
@@ -57,12 +57,13 @@ export const useProductStore = create((set, get) => ({
 
     fetchProductsByCategory: async (category, page = 1, filters = {}) => {
         set({ loading: true });
+
         try {
             const formattedCategory = category.toLowerCase();
             const { minPrice, maxPrice, sort, search } = filters;
             
             const params = new URLSearchParams({
-                page,
+                page: page, 
                 limit: 12,
                 ...(minPrice && { minPrice }),
                 ...(maxPrice && { maxPrice }),
@@ -79,6 +80,7 @@ export const useProductStore = create((set, get) => ({
                 totalPages,
                 currentPage,
                 totalProducts,
+                page: currentPage, 
                 loading: false 
             });
         } catch (error) {

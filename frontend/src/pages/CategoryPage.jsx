@@ -5,7 +5,7 @@ import { useCartStore } from "../stores/useCartStore";
 import { useWishlistStore } from "../stores/useWishlistStore";
 import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal"; 
-import { Filter, ChevronLeft, ChevronRight, RotateCcw, X, ShoppingBag, Heart } from "lucide-react";
+import { Filter, ChevronLeft, ChevronRight, RotateCcw, ShoppingBag, Heart, X } from "lucide-react";
 
 const CategoryPage = () => {
     const { category: urlCategory } = useParams();
@@ -23,7 +23,8 @@ const CategoryPage = () => {
         maxPriceInDb,  
         loading,
         currentPage,
-        totalPages 
+        totalPages,
+        setPage 
     } = useProductStore();
     
     const { addToCart } = useCartStore(); 
@@ -44,7 +45,11 @@ const CategoryPage = () => {
             if (max) setPriceRange(max);
         };
         loadMaxPrice();
-    }, []); 
+    }, [fetchMaxPrice]); 
+
+    useEffect(() => {
+        setPage(1); 
+    }, [selectedCategory, priceRange, sortOrder, searchTerm, setPage]);
 
     useEffect(() => {
         const filters = {
@@ -55,16 +60,15 @@ const CategoryPage = () => {
         };
 
         const delayDebounceFn = setTimeout(() => {
-            const isPagination = currentPage > 1;
             if (selectedCategory === "All") {
-                fetchAllProducts(currentPage, filters, isPagination);
+                fetchAllProducts(currentPage, filters);
             } else {
-                fetchProductsByCategory(selectedCategory.toLowerCase(), currentPage, filters, isPagination);
+                fetchProductsByCategory(selectedCategory.toLowerCase(), currentPage, filters);
             }
         }, 400);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [selectedCategory, currentPage, priceRange, sortOrder, searchTerm]);
+    }, [selectedCategory, currentPage, priceRange, sortOrder, searchTerm, fetchAllProducts, fetchProductsByCategory]);
     
     useEffect(() => {
         const category = urlCategory || "All";
@@ -76,11 +80,14 @@ const CategoryPage = () => {
         setSelectedCategory("All");
         setSortOrder("default");
         setPriceRange(maxPriceInDb || 200);
-        navigate("/category");
+        setPage(1);
+        const searchPart = searchTerm ? `?search=${searchTerm}` : "";
+        navigate(`/category${searchPart}`);
     };
 
     const handleCategoryClick = (cat) => {
         setSelectedCategory(cat);
+        setPage(1);
         const searchPart = searchTerm ? `?search=${searchTerm}` : "";
         if (cat === "All") {
             navigate(`/category${searchPart}`);
@@ -91,12 +98,7 @@ const CategoryPage = () => {
 
     const handlePageChange = (page) => {
         if (page >= 1 && page <= totalPages) {
-            const filters = { minPrice: 0, maxPrice: priceRange, sort: sortOrder, search: searchTerm };
-            if (selectedCategory === "All") {
-                fetchAllProducts(page, filters);
-            } else {
-                fetchProductsByCategory(selectedCategory.toLowerCase(), page, filters);
-            }
+            setPage(page);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
@@ -113,17 +115,29 @@ const CategoryPage = () => {
         }
     };
 
+    const isFiltered = selectedCategory !== "All" || sortOrder !== "default" || (maxPriceInDb && priceRange !== maxPriceInDb);
+
     return (
         <div className='max-w-7xl mx-auto px-4 md:px-6 py-2 
         min-h-screen bg-white overflow-x-hidden pt-12 md:pt-16'>
             
             <header className="mb-2 border-b border-neutral-50 pb-2">
                 <div className="flex flex-col gap-1">
+                    {/* Секція пошуку з хрестиком */}
                     <div className="flex items-center gap-2 h-3">
                         <span className="text-[8px] md:text-[9px] uppercase tracking-[0.2em] 
                         text-neutral-400 font-bold">
                             {searchTerm ? `Search Results for "${searchTerm}"` : "Category"}
                         </span>
+                        {searchTerm && (
+                            <button 
+                                onClick={() => navigate("/category")} 
+                                className="text-neutral-400 hover:text-[#74090A] transition-colors"
+                                title="Clear search"
+                            >
+                                <X size={10} />
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -132,8 +146,13 @@ const CategoryPage = () => {
                             text-neutral-900 font-serif capitalize">
                                 {selectedCategory}
                             </h1>
-                            {(selectedCategory !== "All" || sortOrder !== "default") && (
-                                <button onClick={handleGlobalReset} className="text-neutral-300 hover:text-[#74090A]">
+                            {isFiltered && (
+                                <button 
+                                    onClick={handleGlobalReset} 
+                                    className="text-neutral-300 hover:text-[#74090A] transition-all 
+                                    active:rotate-180 duration-500"
+                                    title="Reset filters"
+                                >
                                     <RotateCcw size={16} />
                                 </button>
                             )}
@@ -179,7 +198,9 @@ const CategoryPage = () => {
                             <div>
                                 <h3 className='text-[10px] font-bold text-neutral-400 
                                 uppercase mb-3 tracking-[0.15em]'>Sort</h3>
-                                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className='w-full py-2 border-b border-neutral-200 bg-transparent text-xs outline-none'>
+                                <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}
+                                    className='w-full py-2 border-b border-neutral-200 bg-transparent text-xs 
+                                    outline-none'>
                                     <option value="default">Newest First</option>
                                     <option value="az">A to Z</option>
                                     <option value="za">Z to A</option>
@@ -195,7 +216,15 @@ const CategoryPage = () => {
                                     </h3>
                                     <span className="text-[#74090A] font-bold text-sm">${priceRange}</span>
                                 </div>
-                                <input type='range' min='0' max={maxPriceInDb || 500} step='1' value={priceRange} onChange={(e) => setPriceRange(Number(e.target.value))} className='w-full h-[2px] bg-neutral-100 appearance-none accent-[#74090A]' />
+                                <input 
+                                    type='range' 
+                                    min='0' 
+                                    max={maxPriceInDb || 500} 
+                                    step='1' 
+                                    value={priceRange} 
+                                    onChange={(e) => setPriceRange(Number(e.target.value))} 
+                                    className='w-full h-[2px] bg-neutral-100 appearance-none accent-[#74090A]' 
+                                />
                             </div>
                         </div>
                     </div>
@@ -207,8 +236,8 @@ const CategoryPage = () => {
                         animate-pulse tracking-widest text-[10px] uppercase">Loading...</div>
                     ) : products.length > 0 ? (
                         <>
-                                <div className={`grid gap-x-3 md:gap-x-8 gap-y-10 md:gap-y-16 transition-all 
-                                duration-500 grid-cols-2 ${isFiltersOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
+                            <div className={`grid gap-x-3 md:gap-x-8 gap-y-10 md:gap-y-16 transition-all 
+                            duration-500 grid-cols-2 ${isFiltersOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
                                 {products.map((product) => (
                                     <div key={product._id} className="flex flex-col group h-full">
                                         <div onClick={() => handleOpenModal(product)} className="cursor-pointer flex-grow">
