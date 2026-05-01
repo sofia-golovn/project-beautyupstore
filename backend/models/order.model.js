@@ -44,7 +44,7 @@ const orderSchema = new mongoose.Schema(
         },
         phone: {
             type: String,
-            default: "",
+            required: true,
         },
         shippingAddress: {
             type: String,

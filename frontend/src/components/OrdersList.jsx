@@ -75,7 +75,7 @@ const OrdersList = ({ onFilterChange }) => {
                                             {typeof order.user === 'object' ? order.user?.email : "..."}
                                         </div>
                                         <div className="flex items-center text-xs text-gray-500 mt-1">
-                                            <Phone size={12} className="mr-1 text-gray-400" /> {order.phone || "No phone"}
+                                            <Phone size={12} className="mr-1 text-gray-400" /> {order.user?.phone || "No phone"}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 align-top">
@@ -95,10 +95,20 @@ const OrdersList = ({ onFilterChange }) => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 align-top">
-                                        <div className="flex items-start gap-2 text-xs text-gray-600 
-                                        max-w-[220px] leading-relaxed">
-                                            <MapPin size={14} className="mt-0.5 flex-shrink-0 text-gray-400" />
-                                            <span>{order.shippingAddress || "Stripe Address"}</span>
+                                        <div className="flex flex-col gap-3 max-w-[220px]">
+                                            <div className="flex items-start gap-2 text-xs text-gray-600 leading-relaxed">
+                                                <MapPin size={14} className="mt-0.5 flex-shrink-0 text-gray-400" />
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-gray-900 mb-0.5">
+                                                        {order.shippingName || order.user?.name}
+                                                    </span>
+                                                    <span>{order.shippingAddress || "Address from Stripe"}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-[11px] font-medium text-[#74090A] bg-[#74090A]/5 px-2 py-1 rounded-md w-fit">
+                                                <Phone size={12} />
+                                                <span>{order.phone}</span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 align-middle">

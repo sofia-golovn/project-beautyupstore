@@ -113,7 +113,7 @@ export const checkoutSuccess = async (req, res) => {
                 totalAmount: session.amount_total / 100,
                 stripeSessionId: sessionId,
                 status: "Paid",
-                phone: customer?.phone || "Not specified",
+                phone: session.customer_details.phone || session.metadata.phone,
                 shippingAddress: `${stripeName} | ${addressStr}`
             });
 
