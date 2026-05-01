@@ -13,6 +13,7 @@ import WishlistPage from "./pages/WishlistPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
+import ProfilePage from "./pages/ProfilePage";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -52,6 +53,7 @@ function App() {
             <Route path='/' element={<HomePage />} />
             <Route path='/about' element={<AboutPage />} />
             <Route path='/contact' element={<ContactPage />} />
+            <Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
             
             <Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
             <Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />

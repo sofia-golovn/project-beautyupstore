@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { ShoppingCart, User, LogOut, Lock, Search, Heart, Menu, X } from "lucide-react";
+import { useState, useRef } from "react";
+import { ShoppingCart, User, CircleUser, Lock, Search, Heart, Menu, X } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 
 import { useUserStore } from "../stores/useUserStore";
@@ -11,8 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { user, logout } = useUserStore();
-    const { cart, resetCart } = useCartStore(); 
+    const { user } = useUserStore(); 
+    const { cart } = useCartStore(); 
     const { wishlist } = useWishlistStore();
     
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -65,6 +65,7 @@ const Navbar = () => {
                         </Link>
                     </div>
 
+                    {/* DESKTOP NAVIGATION */}
                     <nav className='hidden lg:flex items-center justify-center gap-10 font-sans'>
                         <Link to={"/"} className={getNavLinkClass("/")}>Home</Link>
                         <Link to={"/about"} className={getNavLinkClass("/about")}>About</Link>
@@ -72,14 +73,13 @@ const Navbar = () => {
                         <Link to={"/contact"} className={getNavLinkClass("/contact")}>Contact</Link>
                     </nav>
 
-                    <div className='flex-1 flex items-center justify-end gap-3 sm:gap-6'>
-                        
+                    <div className='flex-1 flex items-center justify-end gap-2 sm:gap-6'>
                         <div className="flex items-center">
                             <AnimatePresence>
                                 {isSearchOpen && (
                                     <motion.form 
                                         initial={{ width: 0, opacity: 0 }}
-                                        animate={{ width: window.innerWidth < 640 ? 110 : 180, opacity: 1 }}
+                                        animate={{ width: window.innerWidth < 640 ? 100 : 180, opacity: 1 }}
                                         exit={{ width: 0, opacity: 0 }}
                                         onSubmit={handleSearchSubmit}
                                         className="overflow-hidden"
@@ -105,42 +105,42 @@ const Navbar = () => {
                         
                         {user && (
                             <div className="hidden md:flex items-center gap-6">
-                                <Link to={"/wishlist"} className="text-gray-900 
-                                hover:text-[#A3090A] relative transition-colors">
+                                <Link to={"/wishlist"}
+                                    className="text-gray-900 hover:text-[#A3090A] relative transition-colors">
                                     <Heart size={22} />
-                                    <motion.span key={`wishlist-${wishlistItemsCount}`} {...badgeVariants} className={badgeClassName}>
-                                        {wishlistItemsCount}
+                                    <motion.span key={`wishlist-${wishlistItemsCount}`} {...badgeVariants}
+                                    className={badgeClassName}>
+                                    {wishlistItemsCount}
                                     </motion.span>
                                 </Link>
-                                <Link to={"/cart"} className="text-gray-900 
-                                hover:text-[#A3090A] relative transition-colors">
+                                <Link to={"/cart"}
+                                    className="text-gray-900 hover:text-[#A3090A] relative transition-colors">
                                     <ShoppingCart size={22} />
-                                    <motion.span key={`cart-${cartItemsCount}`} {...badgeVariants}
-                                        className={badgeClassName}>
+                                    <motion.span key={`cart-${cartItemsCount}`} {...badgeVariants} className={badgeClassName}>
                                         {cartItemsCount}
                                     </motion.span>
                                 </Link>
                             </div>
                         )}
-
+                        {user ? (
+                            <Link to="/profile"
+                                className="text-gray-900 hover:text-[#A3090A] transition-colors"
+                                title="My Profile">
+                                <CircleUser size={24} />
+                            </Link>
+                        ) : (
+                                <Link to="/login"
+                                    className="text-gray-900 hover:text-[#A3090A] transition"
+                                    title="Login">
+                                <User size={22} />
+                            </Link>
+                        )}
                         {isAdmin && (
                             <Link className='hidden xl:flex bg-[#74090A] 
                             text-white px-4 py-2 rounded-md hover:bg-[#5a0708] transition duration-300
-                            items-center gap-1 font-medium shadow-sm whitespace-nowrap' to={"/secret-dashboard"}>
+                            items-center gap-1 font-medium shadow-sm whitespace-nowrap'
+                            to={"/secret-dashboard"}>
                                 <Lock size={18} /> Dashboard
-                            </Link>
-                        )}
-                        
-                        {user ? (
-                            <button 
-                                className="text-gray-900 hover:text-[#A3090A] transition"
-                                onClick={() => { logout(); resetCart(); if(isMenuOpen) toggleMenu(); }}
-                            >
-                                <LogOut size={22} />
-                            </button>
-                        ) : (
-                            <Link to="/login" className="text-gray-900 hover:text-[#A3090A] transition">
-                                <User size={22} />
                             </Link>
                         )}
 
@@ -152,6 +152,7 @@ const Navbar = () => {
                 </div>
             </div>
 
+            {/* BURGER MENU */}
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
@@ -164,7 +165,7 @@ const Navbar = () => {
                         <div className='flex flex-col p-6 gap-6'>
                             
                             {user && (
-                                <div className="flex items-center justify-center gap-12">
+                                <div className="flex items-center justify-center gap-12 py-2">
                                     <Link to={"/wishlist"} onClick={toggleMenu} className="text-gray-900 
                                     relative transition-colors flex flex-col items-center gap-1">
                                         <div className="relative">
@@ -193,9 +194,9 @@ const Navbar = () => {
                                 </div>
                             )}
 
-                            <hr className="border-black-500" />
+                            <hr className="border-gray-100" />
 
-                            <nav className="flex flex-col gap-4 text-lg">
+                            <nav className="flex flex-col gap-5 text-lg">
                                 <Link to="/" onClick={toggleMenu} className={getNavLinkClass("/")}>Home</Link>
                                 <Link to="/about" onClick={toggleMenu} className={getNavLinkClass("/about")}>About</Link>
                                 <Link to="/category" onClick={toggleMenu} className={getNavLinkClass("/category")}>Category</Link>
@@ -204,7 +205,7 @@ const Navbar = () => {
 
                             {isAdmin && (
                                 <>
-                                    <hr className="border-black-500" />
+                                    <hr className="border-gray-100" />
                                     <Link to="/secret-dashboard" onClick={toggleMenu}
                                         className="flex items-center gap-2 text-[#74090A] font-bold tracking-wide">
                                         <Lock size={18} /> Admin Dashboard

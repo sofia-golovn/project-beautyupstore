@@ -37,4 +37,21 @@ export const useOrderStore = create((set) => ({
             toast.error(error.response?.data?.message || "Failed to update status");
         }
     },
+
+    getUserOrders: async (page = 1) => {
+    set({ loading: true });
+    try {
+        const res = await axios.get(`/orders/my-orders?page=${page}`);
+        
+        set({ 
+            orders: res.data.orders, 
+            totalPages: res.data.totalPages, 
+            currentPage: res.data.currentPage, 
+            loading: false 
+        });
+    } catch (error) {
+        set({ loading: false });
+        toast.error("Failed to load your orders");
+    }
+    },
 }));
