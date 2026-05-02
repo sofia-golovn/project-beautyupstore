@@ -34,7 +34,7 @@ export const updateOrderStatus = async (req, res) => {
             { status },
             { returnDocument: 'after' }
         )
-        .populate("user", "name email")
+        .populate("user", "name email phone")
         .populate("products.product", "name price image");
 
         if (!updatedOrder) {

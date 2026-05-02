@@ -29,7 +29,10 @@ export const useOrderStore = create((set) => ({
             const res = await axios.patch(`/orders/${orderId}/status`, { status: newStatus });
             
             set((state) => ({
-                orders: state.orders.map((o) => (o._id === orderId ? res.data : o)),
+            orders: state.orders.map((order) =>
+                order._id === orderId ? { ...order, status: res.data.status } : order
+            ),
+            loading: false,
             }));
             
             toast.success(`Status updated to ${newStatus}`);
