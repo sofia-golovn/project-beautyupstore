@@ -53,7 +53,10 @@ function App() {
             <Route path='/' element={<HomePage />} />
             <Route path='/about' element={<AboutPage />} />
             <Route path='/contact' element={<ContactPage />} />
-            <Route path='/profile' element={user ? <ProfilePage /> : <Navigate to='/login' />} />
+            <Route 
+                path='/profile' 
+                element={user ? <ProfilePage key={user._id} /> : <Navigate to='/login' />} 
+            />
             
             <Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
             <Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />

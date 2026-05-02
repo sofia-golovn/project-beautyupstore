@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
 import { useCartStore } from "../stores/useCartStore"; 
-import { LogOut, Mail, MapPin, ChevronLeft, ChevronRight, Package, CheckCircle2, Circle } from "lucide-react";
+import { LogOut, Mail, MapPin, ChevronLeft, ChevronRight, Package, CheckCircle2, Circle, Phone } from "lucide-react";
 import ProductModal from "../components/ProductModal";
 
 const ProfilePage = () => {
-    const { user, logout } = useUserStore();
+    const { user, logout, checkAuth, checkingAuth } = useUserStore();
     const { orders, getUserOrders, loading, totalPages, currentPage } = useOrderStore();
     const { addToCart } = useCartStore(); 
     
@@ -14,8 +14,10 @@ const ProfilePage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); 
 
     useEffect(() => {
-        getUserOrders(1);
-    }, [getUserOrders]);
+        if (user && !user.name) {
+            checkAuth();
+        }
+    }, [user, checkAuth]);
 
     const handlePageChange = (page) => {
         getUserOrders(page);
@@ -30,18 +32,35 @@ const ProfilePage = () => {
     const orderSteps = ["Paid", "Packed", "Shipped", "Delivered"];
     const getStepIndex = (status) => orderSteps.indexOf(status);
 
+    if (checkingAuth) {
+        return (
+            <div className="h-screen flex items-center justify-center bg-white">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#74090A]"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-20 min-h-screen font-sans bg-white">
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end 
             border-b border-neutral-100 pb-8 sm:pb-10 mb-8 sm:mb-12 gap-6">
                 <div className="w-full sm:w-auto">
-                    <h1 className="text-3xl sm:text-4xl font-serif font-light text-neutral-900 capitalize mb-2">
-                        {user?.name}
+                    <h1 className="text-3xl sm:text-4xl font-serif font-light text-neutral-900 capitalize mb-3">
+                        {user?.name || "Guest User"}
                     </h1>
-                    <div className="flex items-center gap-2 text-neutral-400 text-sm tracking-wide">
-                        <Mail size={14} className="text-neutral-300" />
-                        <span className="truncate">{user?.email}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 
+                    text-neutral-400 text-sm tracking-wide">
+                        <div className="flex items-center gap-2">
+                            <Mail size={14} className="text-neutral-300" />
+                            <span className="truncate">{user?.email}</span>
+                        </div>
+                        {user?.phone && (
+                            <div className="flex items-center gap-2">
+                                <Phone size={14} className="text-neutral-300" />
+                                <span>{user?.phone}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
                 
@@ -76,7 +95,9 @@ const ProfilePage = () => {
                                     <div>
                                         <div className="text-[10px] font-bold text-neutral-300 uppercase 
                                         tracking-widest mb-1">Order Number</div>
-                                        <div className="text-sm font-medium text-neutral-600 font-mono">#{order._id.slice(-10).toUpperCase()}</div>
+                                        <div className="text-sm font-medium text-neutral-600 font-mono">
+                                            #{order._id.slice(-10).toUpperCase()}
+                                        </div>
                                     </div>
                                     
                                     <div className="flex items-center justify-between sm:justify-start gap-1 
@@ -90,8 +111,7 @@ const ProfilePage = () => {
                                                             {isCompleted ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                                                         </div>
                                                         <span className={`text-[7px] sm:text-[8px] uppercase font-bold 
-                                                            tracking-tighter ${isCompleted ? "text-neutral-800" :
-                                                                "text-neutral-200"}`}>
+                                                            tracking-tighter ${isCompleted ? "text-neutral-800" : "text-neutral-200"}`}>
                                                             {step}
                                                         </span>
                                                     </div>
@@ -112,7 +132,7 @@ const ProfilePage = () => {
                                         
                                         <div className="space-y-5">
                                             <div className="text-[10px] font-bold text-neutral-300 uppercase 
-                                            tracking-widest border-b border-neutral-50 pb-2">Products</div>
+                                            tracking-widest border-b border-neutral-50 pb-2">Items</div>
                                             {order.products.map((item, idx) => (
                                                 <div key={idx} className="flex gap-4 items-center">
                                                     <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
@@ -138,10 +158,8 @@ const ProfilePage = () => {
                                                     </div>
                                                 </div>
                                             ))}
-                                            <div className="pt-4 border-t border-neutral-50 mt-4 flex justify-between 
-                                            items-baseline">
-                                                <span className="text-xs uppercase tracking-widest text-neutral-300 
-                                                font-bold">Total Paid</span>
+                                            <div className="pt-4 border-t border-neutral-50 mt-4 flex justify-between items-baseline">
+                                                <span className="text-xs uppercase tracking-widest text-neutral-300 font-bold">Total Paid</span>
                                                 <span className="text-2xl font-serif text-[#74090A]">${order.totalAmount}</span>
                                             </div>
                                         </div>
@@ -150,13 +168,14 @@ const ProfilePage = () => {
                                             <div className="flex gap-3">
                                                 <MapPin size={18} className="text-[#74090A] flex-shrink-0 mt-1" />
                                                 <div className="text-sm">
-                                                    <div className="font-bold text-neutral-800 mb-1 uppercase 
-                                                    text-[9px] tracking-widest">Delivery Address</div>
+                                                    <div className="font-bold text-neutral-800 mb-1 uppercase text-[9px] tracking-widest">Shipping To</div>
+                                                    {/* Ім'я отримувача зі Stripe, якщо воно було збережене */}
+                                                    {order.shippingName && <p className="font-bold text-neutral-700 text-xs">{order.shippingName}</p>}
                                                     <p className="text-neutral-500 leading-relaxed font-light">{order.shippingAddress}</p>
+                                                    {order.phone && <p className="text-[#74090A] font-bold text-[10px] mt-2">{order.phone}</p>}
                                                 </div>
                                             </div>
-                                            <div className="text-[9px] text-neutral-300 font-bold uppercase 
-                                            tracking-[0.2em] pt-4 border-t border-neutral-100 flex justify-between">
+                                            <div className="text-[9px] text-neutral-300 font-bold uppercase tracking-[0.2em] pt-4 border-t border-neutral-100 flex justify-between">
                                                 <span>Date:</span>
                                                 <span>{new Date(order.createdAt).toLocaleDateString()}</span>
                                             </div>
@@ -171,8 +190,7 @@ const ProfilePage = () => {
                                 <button 
                                     onClick={() => handlePageChange(currentPage - 1)} 
                                     disabled={currentPage === 1} 
-                                    className="p-2 disabled:opacity-20 hover:text-[#74090A] transition-all 
-                                    bg-neutral-50 rounded-full"
+                                    className="p-2 disabled:opacity-20 hover:text-[#74090A] transition-all bg-neutral-50 rounded-full"
                                 >
                                     <ChevronLeft size={20} />
                                 </button>
@@ -182,8 +200,7 @@ const ProfilePage = () => {
                                 <button 
                                     onClick={() => handlePageChange(currentPage + 1)} 
                                     disabled={currentPage === totalPages} 
-                                    className="p-2 disabled:opacity-20 hover:text-[#74090A] transition-all 
-                                    bg-neutral-50 rounded-full"
+                                    className="p-2 disabled:opacity-20 hover:text-[#74090A] transition-all bg-neutral-50 rounded-full"
                                 >
                                     <ChevronRight size={20} />
                                 </button>

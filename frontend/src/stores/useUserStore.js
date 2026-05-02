@@ -23,7 +23,8 @@ export const useUserStore = create((set, get) => ({
 
     try {
         const res = await axios.post("/auth/signup", { name, email, phone, password });
-        set({ user: res.data, loading: false });
+        const userData = res.data.user || res.data; 
+        set({ user: userData, loading: false });
         toast.success("Account created successfully");
     } catch (error) {
         set({ loading: false });
