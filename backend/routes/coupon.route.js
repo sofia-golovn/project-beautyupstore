@@ -11,9 +11,11 @@ import {
 const router = express.Router();
 
 router.get("/", protectRoute, getCoupon);
+
+router.get("/all", protectRoute, getAllCoupons);
+
 router.post("/validate", protectRoute, validateCoupon);
 
-router.get("/all", protectRoute, adminRoute, getAllCoupons);
 router.post("/", protectRoute, adminRoute, createCoupon);
 router.delete("/:id", protectRoute, adminRoute, deleteCoupon);
 

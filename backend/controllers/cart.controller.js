@@ -1,4 +1,5 @@
 import Product from "../models/product.model.js";
+import Order from "../models/order.model.js";
 
 export const getCartProducts = async (req, res) => {
 	try {
@@ -77,4 +78,54 @@ export const updateQuantity = async (req, res) => {
 		console.log("Error in updateQuantity controller", error.message);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
+};
+
+export const validateCoupon = async (req, res) => {
+    try {
+        const { code } = req.body;
+        const coupon = await Coupon.findOne({ code, userId: req.user._id, isActive: true });
+
+        if (!coupon) {
+            return res.status(404).json({ message: "Coupon not found" });
+        }
+
+        res.json({
+            message: "Coupon is valid",
+            code: coupon.code,
+            discountPercentage: coupon.discountPercentage,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+export const applyCoupon = async (req, res) => {
+    try {
+        const { code } = req.body;
+        const userId = req.user._id;
+
+        const coupon = await Coupon.findOne({ code, isActive: true });
+
+        if (!coupon) {
+            return res.status(404).json({ message: "Coupon not found" });
+        }
+
+        if (coupon.isFirstOrderOnly) {
+            const orderCount = await Order.countDocuments({ user: userId });
+            
+            if (orderCount > 0) {
+                return res.status(400).json({ 
+                    message: "This coupon is only for new customers. You have already placed orders." 
+                });
+            }
+        }
+        res.json({
+            message: "Coupon applied",
+            code: coupon.code,
+            discountPercentage: coupon.discountPercentage,
+            minimumPurchaseAmount: coupon.minimumPurchaseAmount
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
 };

@@ -19,44 +19,37 @@ export const getCoupon = async (req, res) => {
 
 export const validateCoupon = async (req, res) => {
     try {
-        const { code, cartTotal } = req.body;
-        
-        const coupon = await Coupon.findOne({ code: code, isActive: true });
+        const { code } = req.body;
+        const userId = req.user._id;
+
+        const coupon = await Coupon.findOne({ code, isActive: true });
 
         if (!coupon) {
             return res.status(404).json({ message: "Coupon not found" });
         }
 
-        if (coupon.expirationDate < new Date()) {
-            coupon.isActive = false;
-            await coupon.save();
-            return res.status(404).json({ message: "Coupon expired" });
-        }
-
-        if (cartTotal < coupon.minimumPurchaseAmount) {
-            return res.status(400).json({ 
-                message: `Minimum purchase amount for this coupon is $${coupon.minimumPurchaseAmount}` 
-            });
-        }
-
         if (coupon.isFirstOrderOnly) {
-            const existingOrder = await Order.findOne({ userId: req.user._id });
-            if (existingOrder) {
-                return res.status(400).json({ message: "This coupon is only for your first order" });
+            const orderCount = await Order.countDocuments({ user: userId });
+            if (orderCount > 0) {
+                return res.status(400).json({ 
+                    message: "This coupon is only for new customers." 
+                });
             }
         }
 
-        if (coupon.userId && coupon.userId.toString() !== req.user._id.toString()) {
-            return res.status(404).json({ message: "This coupon is not valid for your account" });
+        if (req.body.total && req.body.total < coupon.minimumPurchaseAmount) {
+            return res.status(400).json({ 
+                message: `Minimum purchase amount is $${coupon.minimumPurchaseAmount}` 
+            });
         }
 
         res.json({
             message: "Coupon is valid",
             code: coupon.code,
             discountPercentage: coupon.discountPercentage,
+            minimumPurchaseAmount: coupon.minimumPurchaseAmount
         });
     } catch (error) {
-        console.log("Error in validateCoupon controller", error.message);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
@@ -96,11 +89,10 @@ export const createCoupon = async (req, res) => {
 
 export const getAllCoupons = async (req, res) => {
     try {
-        const coupons = await Coupon.find().sort({ createdAt: -1 });
+        const coupons = await Coupon.find({ isActive: true });
         res.json(coupons);
     } catch (error) {
-        console.log("Error in getAllCoupons controller", error.message);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 

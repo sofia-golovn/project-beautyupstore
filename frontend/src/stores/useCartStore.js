@@ -96,6 +96,15 @@ export const useCartStore = create(
                 }
             },
 
+            fetchAllCoupons: async () => {
+                try {
+                    const res = await axios.get("/coupons/all");
+                    set({ coupons: res.data });
+                } catch (error) {
+                    set({ coupons: [] });
+                }
+            },
+
             applyCoupon: async (code, cartTotal) => {
                 try {
                     const response = await axios.post("/coupons/validate", { code, cartTotal });
