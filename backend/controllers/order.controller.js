@@ -50,8 +50,9 @@ export const updateOrderStatus = async (req, res) => {
 
 export const getUserOrders = async (req, res) => {
     try {
+
         const page = parseInt(req.query.page) || 1;
-        const limit = 10;
+        const limit = 12;
         const skip = (page - 1) * limit;
 
         const totalOrders = await Order.countDocuments({ user: req.user._id });
@@ -63,11 +64,12 @@ export const getUserOrders = async (req, res) => {
             .limit(limit);
 
         res.json({
-            orders,
-            totalPages: Math.ceil(totalOrders / limit),
+            orders: orders || [],
+            totalPages: Math.ceil(totalOrders / limit) || 1,
             currentPage: page
         });
     } catch (error) {
+        console.error("Error in getUserOrders:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };

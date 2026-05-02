@@ -14,10 +14,14 @@ const ProfilePage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); 
 
     useEffect(() => {
-        if (user && !user.name) {
-            checkAuth();
-        }
-    }, [user, checkAuth]);
+    if (user && !user.name) {
+        checkAuth();
+    }
+
+    if (user?._id) {
+        getUserOrders(1);
+    }
+    }, [user?._id, user?.name, checkAuth, getUserOrders]);
 
     const handlePageChange = (page) => {
         getUserOrders(page);

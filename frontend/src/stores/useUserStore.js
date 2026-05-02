@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useWishlistStore } from "./useWishlistStore"; 
+import { useOrderStore } from "./useOrderStore"; 
 import { auth, googleProvider } from "../lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 
@@ -50,6 +51,7 @@ export const useUserStore = create((set, get) => ({
             await axios.post("/auth/logout");
             set({ user: null, allUsers: [], currentPage: 1, totalPages: 1 });
             
+            useOrderStore.setState({ orders: [], totalPages: 1, currentPage: 1 });
             useWishlistStore.getState().clearWishlist();
         } catch (error) {
             toast.error(error.response?.data?.message || "An error occurred during logout");
