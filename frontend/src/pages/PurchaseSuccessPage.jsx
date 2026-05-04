@@ -111,7 +111,7 @@ const PurchaseSuccessPage = () => {
 
                     <div className='space-y-4'>
                         <Link
-                            to={"/category"}
+                            to={"/catalog"}
                             className='w-full bg-[#74090A] hover:bg-[#4F0608] text-white 
                             text-[10px] font-bold uppercase tracking-widest py-4 px-4 
                             rounded-xl transition duration-300 flex items-center justify-center 

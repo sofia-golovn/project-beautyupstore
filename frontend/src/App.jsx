@@ -67,7 +67,7 @@ function App() {
               element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}
             />
             
-            <Route path='/catalog/:catalog?' element={<CatalogPage />} />
+            <Route path='/catalog/:category' element={<CatalogPage />} />
             <Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login'  />} />
             <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
             

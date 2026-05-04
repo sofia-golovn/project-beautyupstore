@@ -113,7 +113,7 @@ const EmptyCartUI = () => (
         <Link
 			 className="inline-block bg-[#74090A] text-white px-10 py-3 rounded-full text-[9px] font-bold uppercase 
             tracking-[0.2em] hover:bg-black transition-all duration-500"
-            to="/category"
+            to="/catalog"
         >
             Discover products
         </Link>

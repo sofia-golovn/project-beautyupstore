@@ -103,7 +103,7 @@ const OrderSummary = () => {
 					<div className="flex items-center justify-center gap-3">
 						<span className="text-[9px] uppercase tracking-widest text-neutral-400">or</span>
 						<Link
-							to="/category"
+							to="/catalog"
 							className="inline-flex items-center gap-2 text-[9px] 
                             font-bold uppercase tracking-[0.2em] text-neutral-900 
                             hover:text-[#74090A] transition-colors"

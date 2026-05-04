@@ -200,7 +200,6 @@ const Navbar = () => {
                             <nav className="flex flex-col gap-5 text-lg">
                                 <Link to="/" onClick={toggleMenu} className={getNavLinkClass("/")}>Home</Link>
                                 <Link to="/about" onClick={toggleMenu} className={getNavLinkClass("/about")}>About</Link>
-                                {/* ЗМІНЕНО: шлях /category замінено на /catalog */}
                                 <Link to="/catalog" onClick={toggleMenu} className={getNavLinkClass("/catalog")}>Catalog</Link>
                                 <Link to="/contact" onClick={toggleMenu} className={getNavLinkClass("/contact")}>Contact</Link>
                             </nav>

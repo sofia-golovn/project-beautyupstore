@@ -7,7 +7,7 @@ import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal"; 
 import { Filter, ChevronLeft, ChevronRight, RotateCcw, ShoppingBag, Heart, X } from "lucide-react";
 
-const CategoryPage = () => {
+const CatalogPage = () => {
     const { category: urlCategory } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -86,7 +86,7 @@ const CategoryPage = () => {
         setPriceRange(maxPriceInDb || 200);
         setPage(1);
         const searchPart = searchTerm ? `?search=${searchTerm}` : "";
-        navigate(`/category${searchPart}`);
+        navigate(`/catalog${searchPart}`);
     };
 
     const handleCategoryClick = (cat) => {
@@ -94,9 +94,9 @@ const CategoryPage = () => {
         setPage(1);
         const searchPart = searchTerm ? `?search=${searchTerm}` : "";
         if (cat === "All") {
-            navigate(`/category${searchPart}`);
+            navigate(`/catalog${searchPart}`);
         } else {
-            navigate(`/category/${cat}${searchPart}`);
+            navigate(`/catalog/${cat}${searchPart}`);
         }
     };
 
@@ -129,11 +129,11 @@ const CategoryPage = () => {
                     <div className="flex items-center gap-2 h-3">
                         <span className="text-[8px] md:text-[9px] uppercase tracking-[0.2em] 
                         text-neutral-400 font-bold">
-                            {searchTerm ? `Search Results for "${searchTerm}"` : "Category"}
+                            {searchTerm ? `Search Results for "${searchTerm}"` : "Catalog"}
                         </span>
                         {searchTerm && (
                             <button 
-                                onClick={() => navigate("/category")} 
+                                onClick={() => navigate("/catalog")} 
                                 className="text-neutral-400 hover:text-[#74090A] transition-colors"
                                 title="Clear search"
                             >
@@ -299,4 +299,4 @@ const CategoryPage = () => {
     );
 };
 
-export default CategoryPage;
+export default CatalogPage;
