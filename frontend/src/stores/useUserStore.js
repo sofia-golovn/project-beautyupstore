@@ -40,9 +40,29 @@ export const useUserStore = create((set, get) => ({
             set({ user: res.data, loading: false });
             
             useWishlistStore.getState().getWishlist();
+            toast.success("Welcome back!");
         } catch (error) {
             set({ loading: false });
             toast.error(error.response?.data?.message || "An error occurred");
+        }
+    },
+
+    toggleBlockUser: async (userId) => {
+        set({ loading: true });
+        try {
+            const res = await axios.put(`/auth/users/block/${userId}`);
+            
+            set((state) => ({
+                allUsers: state.allUsers.map((user) =>
+                    user._id === userId ? { ...user, isBanned: res.data.isBanned } : user
+                ),
+                loading: false,
+            }));
+
+            toast.success(res.data.isBanned ? "User blocked" : "User unblocked");
+        } catch (error) {
+            set({ loading: false });
+            toast.error(error.response?.data?.message || "Failed to update user status");
         }
     },
 
@@ -85,22 +105,6 @@ export const useUserStore = create((set, get) => ({
         } catch (error) {
             set({ loading: false });
             toast.error(error.response?.data?.message || "Failed to fetch users");
-        }
-    },
-
-    deleteUser: async (userId) => {
-        if (!window.confirm("Are you sure you want to delete this user?")) return;
-        set({ loading: true });
-        try {
-            await axios.delete(`/users/${userId}`);
-            set((state) => ({
-                allUsers: state.allUsers.filter((u) => u._id !== userId),
-                loading: false,
-            }));
-            toast.success("User deleted");
-        } catch (error) {
-            set({ loading: false });
-            toast.error(error.response?.data?.message || "Failed to delete");
         }
     },
 

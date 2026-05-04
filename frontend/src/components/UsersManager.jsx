@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { Trash, Shield, ShieldAlert, User } from "lucide-react";
+import { Trash, Shield, ShieldAlert, User, Lock, Unlock } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
 
 const UsersManager = () => {
-    const { allUsers, deleteUser, updateUserRole, loading } = useUserStore();
+    const { allUsers, toggleBlockUser, updateUserRole, loading } = useUserStore();
 
     return (
         <motion.div
@@ -24,14 +24,20 @@ const UsersManager = () => {
                     </thead>
                     <tbody className='bg-white divide-y divide-gray-100'>
                         {allUsers?.map((user) => (
-                            <tr key={user._id} className='hover:bg-gray-50 transition-colors'>
+                            <tr 
+                                key={user._id} 
+                                className={`hover:bg-gray-50 transition-colors ${user.isBanned ? "bg-gray-50 opacity-60" : ""}`}
+                            >
                                 <td className='px-6 py-4 whitespace-nowrap'>
                                     <div className='flex items-center'>
-                                        <div className='flex-shrink-0 h-10 w-10 border border-gray-100 
-                                        rounded-full bg-gray-50 flex items-center justify-center'>
+                                        <div className='flex-shrink-0 h-10 w-10 border border-gray-100 rounded-full bg-gray-50 flex items-center justify-center'>
                                             <User className="h-5 w-5 text-gray-400" />
                                         </div>
-                                        <div className='ml-4'><div className='text-sm font-medium text-gray-900'>{user.name}</div></div>
+                                        <div className='ml-4'>
+                                            <div className='text-sm font-medium text-gray-900'>
+                                                {user.name} {user.isBanned && <span className="text-[10px] ml-2 text-red-500 font-bold uppercase tracking-tighter">[Banned]</span>}
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td className='px-6 py-4 whitespace-nowrap'><div className='text-sm text-gray-500'>{user.email}</div></td>
@@ -46,8 +52,18 @@ const UsersManager = () => {
                                         className={`p-1.5 rounded-full ${user.role === "admin" ? "bg-amber-100 text-amber-500" : "bg-gray-100 text-gray-400"}`}>
                                             {user.role === "admin" ? <ShieldAlert size={16} /> : <Shield size={16} />}
                                         </button>
-                                        <button onClick={() => deleteUser(user._id)}
-                                            className='text-gray-400 hover:text-[#74090A]'><Trash size={16} /></button>
+
+                                        <button 
+                                            onClick={() => toggleBlockUser(user._id)}
+                                            title={user.isBanned ? "Unlock User" : "Block User"}
+                                            className={`p-1.5 rounded-full transition-colors ${
+                                                user.isBanned 
+                                                ? "bg-red-600 text-white hover:bg-red-700" 
+                                                : "bg-gray-100 text-gray-400 hover:text-red-600"
+                                            }`}
+                                        >
+                                            {user.isBanned ? <Lock size={16} /> : <Unlock size={16} />}
+                                        </button>
                                     </div>
                                 </td>
                             </tr>

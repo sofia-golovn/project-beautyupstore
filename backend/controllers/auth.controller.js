@@ -78,27 +78,35 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req, res) => {
     try {
-		const { email, password } = req.body;
-		const user = await User.findOne({ email });
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
 
-		if (user && (await user.comparePassword(password))) {
-			const { accessToken, refreshToken } = generateTokens(user._id);
-			await storeRefreshToken(user._id, refreshToken);
-			setCookies(res, accessToken, refreshToken);
+        if (user && (await user.comparePassword(password))) {
+            
+            if (user.isBanned) {
+                return res.status(403).json({ 
+                    message: "Your account has been blocked. Please contact an administrator." 
+                });
+            }
 
-			res.json({
-				_id: user._id,
-				name: user.name,
-				email: user.email,
-				role: user.role,
-			});
-		} else {
-			res.status(400).json({ message: "Invalid email or password" });
-		}
-	} catch (error) {
-		console.log("Error in login controller", error.message);
-		res.status(500).json({ message: error.message });
-	}
+            const { accessToken, refreshToken } = generateTokens(user._id);
+            await storeRefreshToken(user._id, refreshToken);
+            setCookies(res, accessToken, refreshToken);
+
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isBanned: user.isBanned, 
+            });
+        } else {
+            res.status(400).json({ message: "Invalid email or password" });
+        }
+    } catch (error) {
+        console.log("Error in login controller", error.message);
+        res.status(500).json({ message: error.message });
+    }
 };
 
 export const logout = async (req, res) => {
@@ -221,5 +229,19 @@ export const googleLogin = async (req, res) => {
     } catch (error) {
         console.error("Error in googleLogin:", error.message);
         res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const toggleBlockUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        user.isBanned = !user.isBanned;
+        await user.save();
+
+        res.json({ isBanned: user.isBanned });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
