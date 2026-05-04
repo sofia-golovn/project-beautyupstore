@@ -33,7 +33,7 @@ const orderSchema = new mongoose.Schema(
         },
         stripeSessionId: {
             type: String,
-            required: true,
+            required: false,
             unique: true,
         },
         status: {
@@ -44,7 +44,7 @@ const orderSchema = new mongoose.Schema(
         },
         phone: {
             type: String,
-            required: true,
+            required: false,
         },
         shippingAddress: {
             type: String,
