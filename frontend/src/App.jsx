@@ -6,7 +6,7 @@ import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import AboutPage from "./pages/AboutPage";
-import CategoryPage from "./pages/CategoryPage";
+import CatalogPage from "./pages/CatalogPage";
 import ContactPage from "./pages/ContactPage";
 import CartPage from "./pages/CartPage";
 import WishlistPage from "./pages/WishlistPage";
@@ -67,7 +67,7 @@ function App() {
               element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}
             />
             
-            <Route path='/category/:category?' element={<CategoryPage />} />
+            <Route path='/catalog/:catalog?' element={<CatalogPage />} />
             <Route path='/wishlist' element={user ? <WishlistPage /> : <Navigate to='/login'  />} />
             <Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
             

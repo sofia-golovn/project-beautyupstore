@@ -37,7 +37,8 @@ const Navbar = () => {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         if (searchTerm.trim()) {
-            navigate(`/category?search=${encodeURIComponent(searchTerm.trim())}`);
+            // ЗМІНЕНО: тепер перенаправляє на /catalog
+            navigate(`/catalog?search=${encodeURIComponent(searchTerm.trim())}`);
             setIsSearchOpen(false);
             setSearchTerm("");
             if (isMenuOpen) setIsMenuOpen(false);
@@ -69,7 +70,7 @@ const Navbar = () => {
                     <nav className='hidden lg:flex items-center justify-center gap-10 font-sans'>
                         <Link to={"/"} className={getNavLinkClass("/")}>Home</Link>
                         <Link to={"/about"} className={getNavLinkClass("/about")}>About</Link>
-                        <Link to={"/category"} className={getNavLinkClass("/category")}>Category</Link>
+                        <Link to={"/catalog"} className={getNavLinkClass("/catalog")}>Catalog</Link>
                         <Link to={"/contact"} className={getNavLinkClass("/contact")}>Contact</Link>
                     </nav>
 
@@ -199,7 +200,8 @@ const Navbar = () => {
                             <nav className="flex flex-col gap-5 text-lg">
                                 <Link to="/" onClick={toggleMenu} className={getNavLinkClass("/")}>Home</Link>
                                 <Link to="/about" onClick={toggleMenu} className={getNavLinkClass("/about")}>About</Link>
-                                <Link to="/category" onClick={toggleMenu} className={getNavLinkClass("/category")}>Category</Link>
+                                {/* ЗМІНЕНО: шлях /category замінено на /catalog */}
+                                <Link to="/catalog" onClick={toggleMenu} className={getNavLinkClass("/catalog")}>Catalog</Link>
                                 <Link to="/contact" onClick={toggleMenu} className={getNavLinkClass("/contact")}>Contact</Link>
                             </nav>
 

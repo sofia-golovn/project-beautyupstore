@@ -5,12 +5,12 @@ import FeaturedProducts from "../components/FeaturedProducts";
 import CategoryItem from "../components/CategoryItem";
 
 const categories = [
-    { id: 1, href: "/category/face", name: "Face", imageUrl: "/face.png" },
-    { id: 2, href: "/category/body", name: "Body", imageUrl: "/body.png" },
-    { id: 3, href: "/category/hair", name: "Hair", imageUrl: "/hair.png" },
-    { id: 4, href: "/category/sun", name: "Sun", imageUrl: "/sun.png" },
-    { id: 5, href: "/category/accessories", name: "Accessories", imageUrl: "/accessories.png" },
-    { id: 6, href: "/category/sets", name: "Sets", imageUrl: "/sets.png" },
+    { id: 1, href: "/catalog/face", name: "Face", imageUrl: "/face.png" },
+    { id: 2, href: "/catalog/body", name: "Body", imageUrl: "/body.png" },
+    { id: 3, href: "/catalog/hair", name: "Hair", imageUrl: "/hair.png" },
+    { id: 4, href: "/catalog/sun", name: "Sun", imageUrl: "/sun.png" },
+    { id: 5, href: "/catalog/accessories", name: "Accessories", imageUrl: "/accessories.png" },
+    { id: 6, href: "/catalog/sets", name: "Sets", imageUrl: "/sets.png" },
 ];
 
 const HomePage = () => {
@@ -22,7 +22,6 @@ const HomePage = () => {
 
     return (
         <div className='relative min-h-screen bg-white'>
-            {/* Hero Section */}
             <div className="relative min-h-[60vh] flex items-center justify-center pt-20">
                 <div className="container mx-auto px-6 flex flex-col items-center text-center">
                     <div className="relative flex flex-col items-center mb-10">
@@ -45,7 +44,7 @@ const HomePage = () => {
                     </p>
 
                     <Link
-                        to="/category"
+                        to="/catalog"
                         className="font-sans bg-[#74090A] text-white text-[10px] font-medium 
                         tracking-[0.4em] px-12 py-4 rounded-sm hover:bg-black transition-all duration-500"
                     >

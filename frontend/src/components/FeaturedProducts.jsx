@@ -120,7 +120,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
                 </div>
 
                 <div className='mt-10 md:mt-16 text-center'>
-                    <Link to='/category' className='inline-block group'>
+                    <Link to='/catalog' className='inline-block group'>
                         <span className='font-sans text-[10px] md:text-xs 
                         uppercase tracking-[0.3em] text-[#74090A]
                         group-hover:opacity-80 transition-opacity duration-300 font-medium'>
