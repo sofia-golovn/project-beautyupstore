@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { PlusCircle, Upload, Loader, Plus, X, Check, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { PlusCircle, Upload, Loader } from "lucide-react";
 import { useProductStore } from "../stores/useProductStore";
 
 const CreateProductForm = () => {
@@ -12,16 +12,11 @@ const CreateProductForm = () => {
         image: "",
     });
 
-    const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
-    const [newCategoryName, setNewCategoryName] = useState("");
-
     const { 
         createProduct, 
         loading, 
         categories, 
-        fetchAllCategories, 
-        createCategory, 
-        deleteCategory 
+        fetchAllCategories 
     } = useProductStore();
 
     useEffect(() => {
@@ -47,28 +42,6 @@ const CreateProductForm = () => {
             setNewProduct({ name: "", description: "", price: "", category: "", image: "" });
         } catch (error) {
             console.error("Full error object:", error);
-        }
-    };
-
-    const handleCreateCategory = async () => {
-        if (!newCategoryName.trim()) return;
-        try {
-            await createCategory(newCategoryName.trim());
-            
-            setNewProduct({ ...newProduct, category: newCategoryName.trim() });
-            setNewCategoryName("");
-            setIsAddingNewCategory(false);
-        } catch (error) {
-            console.log("Error creating category", error);
-        }
-    };
-
-    const handleDeleteCategory = () => {
-        if (!newProduct.category || newProduct.category === "All") return;
-        
-        if (window.confirm(`Are you sure you want to delete the category? "${newProduct.category}"?`)) {
-            deleteCategory(newProduct.category);
-            setNewProduct({ ...newProduct, category: "" });
         }
     };
 
@@ -145,76 +118,24 @@ const CreateProductForm = () => {
                 </div>
 
                 <div>
-                    <div className="flex justify-between items-center mb-1">
-                        <label htmlFor='category' className='block text-sm font-medium text-gray-700'>
-                            Category
-                        </label>
-                        <button
-                            type="button"
-                            onClick={() => setIsAddingNewCategory(!isAddingNewCategory)}
-                            className="flex items-center text-xs font-semibold text-[#74090A] hover:text-[#5a0708]"
-                        >
-                            {isAddingNewCategory ? <><X size={14} className="mr-1" /> Cancel</> : <><Plus size={14}
-                            className="mr-1" /> Add New</>}
-                        </button>
-                    </div>
-
-                    <AnimatePresence>
-                        {isAddingNewCategory && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="overflow-hidden"
-                            >
-                                <div className="flex gap-2 mb-3 p-2 bg-gray-50 rounded-md border border-dashed
-                                border-gray-300">
-                                    <input
-                                        type="text"
-                                        value={newCategoryName}
-                                        onChange={(e) => setNewCategoryName(e.target.value)}
-                                        placeholder="New category name..."
-                                        className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded 
-                                        outline-none"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleCreateCategory}
-                                        className="bg-[#74090A] text-white p-1.5 rounded hover:bg-[#5a0708]"
-                                    >
-                                        <Check size={16} />
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <div className="flex gap-2">
-                        <select
-                            id='category'
-                            value={newProduct.category}
-                            onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                            className='block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-                            focus:ring-[#74090A] focus:border-[#74090A] sm:text-sm capitalize'
-                            required
-                        >
-                            <option value=''>Select a category</option>
-                            {categories?.filter(c => c !== "All").map((cat) => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
-
-                        {newProduct.category && newProduct.category !== "All" && (
-                            <button
-                                type="button"
-                                onClick={handleDeleteCategory}
-                                className="p-2 text-gray-400 hover:text-red-600 border border-gray-300 
-                                rounded-md transition-colors"
-                            >
-                                <Trash2 size={18} />
-                            </button>
-                        )}
-                    </div>
+                    <label htmlFor='category' className='block text-sm font-medium text-gray-700 mb-1'>
+                        Category
+                    </label>
+                    <select
+                        id='category'
+                        value={newProduct.category}
+                        onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                        className='block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                        focus:ring-[#74090A] focus:border-[#74090A] sm:text-sm capitalize outline-none'
+                        required
+                    >
+                        <option value=''>Select a category</option>
+                        {categories?.filter(c => c !== "All").map((cat) => (
+                            <option key={cat._id || cat} value={cat.name || cat}>
+                                {cat.name || cat}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className='flex items-center pt-2'>

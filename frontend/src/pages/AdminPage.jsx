@@ -1,10 +1,11 @@
-import { BarChart, PlusCircle, ShoppingBasket, Users, ChevronLeft, ChevronRight, Ticket, Package } from "lucide-react"; 
+import { BarChart, PlusCircle, ShoppingBasket, Users, ChevronLeft, ChevronRight, Ticket, Package, LayoutGrid } from "lucide-react"; 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import AnalyticsTab from "../components/AnalyticsTab";
 import CreateProductForm from "../components/CreateProductForm";
 import EditProductForm from "../components/EditProductForm"; 
+import CreateCategory from "../components/CreateCategory";
 import ProductsList from "../components/ProductsList";
 import UsersManager from "../components/UsersManager"; 
 import CouponManager from "../components/CouponManager";
@@ -13,8 +14,10 @@ import { useProductStore } from "../stores/useProductStore";
 import { useUserStore } from "../stores/useUserStore";
 import { useOrderStore } from "../stores/useOrderStore";
 
+// Оновлений масив вкладок
 const tabs = [
     { id: "create", label: "Create Product", icon: PlusCircle },
+    { id: "categories", label: "Create Categories", icon: LayoutGrid },
     { id: "coupons", label: "Coupons", icon: Ticket }, 
     { id: "products", label: "Products", icon: ShoppingBasket },
     { id: "users", label: "Users", icon: Users }, 
@@ -90,6 +93,7 @@ const AdminPage = () => {
 
                 <div className="bg-white rounded-lg">
                     {activeTab === "create" && <CreateProductForm />}
+                    {activeTab === "categories" && <CreateCategory />}
                     {activeTab === "coupons" && <CouponManager />}
                     {activeTab === "products" && (
                         <>
@@ -107,6 +111,7 @@ const AdminPage = () => {
                     {activeTab === "users" && <UsersManager />}
                     {activeTab === "orders" && <OrdersList />}
                     {activeTab === "analytics" && <AnalyticsTab />}
+                    
                     {(activeTab === "products" || activeTab === "users" || activeTab === "orders") && !editingProduct && currentTotalPages > 1 && (
                         <div className='flex justify-center items-center mt-12 gap-4 pb-10'>
                             <button
