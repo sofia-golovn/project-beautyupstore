@@ -173,4 +173,17 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
+    refreshToken: async () => {
+    if (get().checkingAuth) return;
+    set({ loading: true });
+    try {
+        const res = await axios.post("/auth/refresh-token");
+        set({ user: res.data, loading: false });
+        return res.data;
+    } catch (error) {
+        set({ user: null, loading: false });
+        throw error;
+    }
+    },
+
 }));
