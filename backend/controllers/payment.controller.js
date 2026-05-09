@@ -10,21 +10,44 @@ export const createCheckoutSession = async (req, res) => {
             return res.status(400).json({ error: "Invalid or empty products array" });
         }
 
+        const baseTotalAmount = products.reduce((sum, product) => {
+            const price = Number(product.price) || 0;
+            const quantity = Number(product.quantity) || 1;
+            return sum + (price * quantity);
+        }, 0);
+
         let discountPercent = 0;
+        let appliedCouponCode = "";
+
         if (couponCode) {
             const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
-            if (coupon) discountPercent = coupon.discountPercentage;
+            
+            if (coupon) {
+                const isExpired = new Date() > new Date(coupon.expirationDate);
+                
+                const minAmountRequired = Number(coupon.minimumPurchaseAmount) || 0;
+
+                if (!isExpired && baseTotalAmount >= minAmountRequired) {
+                    discountPercent = Number(coupon.discountPercentage) || 0;
+                    appliedCouponCode = couponCode;
+                } else if (isExpired) {
+                    console.log(`Coupon ${couponCode} has expired`);
+                } else {
+                    console.log(`The sum of ${baseTotalAmount.toFixed(2)} is less than the minimum of (${minAmountRequired})`);
+                }
+            }
         }
 
         let totalOrderAmount = 0;
 
         const lineItems = products.map((product) => {
-            const amount = Math.round(product.price * 100);
-            const finalAmount = discountPercent > 0 
-                ? Math.round(amount * (1 - discountPercent / 100)) 
-                : amount;
+            const originalPriceInCents = Math.round(Number(product.price) * 100);
+            
+            const finalPriceInCents = discountPercent > 0 
+                ? Math.round(originalPriceInCents * (1 - discountPercent / 100)) 
+                : originalPriceInCents;
 
-            totalOrderAmount += (finalAmount / 100) * (product.quantity || 1);
+            totalOrderAmount += (finalPriceInCents / 100) * (Number(product.quantity) || 1);
 
             return {
                 price_data: {
@@ -33,26 +56,23 @@ export const createCheckoutSession = async (req, res) => {
                         name: product.name, 
                         images: product.image ? [product.image] : [] 
                     },
-                    unit_amount: finalAmount,
+                    unit_amount: finalPriceInCents,
                 },
-                quantity: product.quantity || 1,
+                quantity: Number(product.quantity) || 1,
             };
         });
 
-        // 1. Створюємо замовлення як "Pending" (Чернетка)
-        // Воно збережеться в базі, але завдяки фільтрації в getAllOrders 
-        // адмін його не побачить, поки статус не зміниться на "Paid"
         const newOrder = new Order({
             user: req.user._id,
             products: products.map((p) => ({
                 product: p._id || p.id,
-                quantity: p.quantity,
-                price: p.price,
+                quantity: Number(p.quantity) || 1,
+                price: Number(p.price),
             })),
-            totalAmount: totalOrderAmount,
+            totalAmount: Number(totalOrderAmount.toFixed(2)),
             stripeSessionId: "temp_" + Date.now(), 
             phone: "Pending", 
-            status: "Pending", // ВАЖЛИВО: статус Pending
+            status: "Pending", 
         });
 
         await newOrder.save();
@@ -70,12 +90,11 @@ export const createCheckoutSession = async (req, res) => {
             cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
             metadata: {
                 userId: req.user._id.toString(),
-                orderId: newOrder._id.toString(), // Передаємо тільки ID, щоб не було помилок ліміту символів
-                couponCode: couponCode || "",
+                orderId: newOrder._id.toString(), 
+                couponCode: appliedCouponCode, 
             },
         });
 
-        // Оновлюємо тимчасовий ID на реальний ID сесії Stripe
         newOrder.stripeSessionId = session.id;
         await newOrder.save();
 
@@ -101,7 +120,6 @@ export const checkoutSuccess = async (req, res) => {
                 return res.status(404).json({ message: "Order not found" });
             }
 
-            // Якщо замовлення вже оброблено, просто повертаємо успіх
             if (order.status === "Paid") {
                 return res.status(200).json({ success: true, orderId: order._id });
             }
@@ -124,7 +142,6 @@ export const checkoutSuccess = async (req, res) => {
 
             const stripeName = shipping?.name || customer?.name || "Client";
 
-            // ОНОВЛЕННЯ: Тепер замовлення стає "Paid" і з'являється в адмінці
             order.shippingAddress = `${stripeName} | ${addressStr}`;
             order.phone = customer?.phone || shipping?.phone || "No phone";
             order.status = "Paid";
@@ -132,7 +149,6 @@ export const checkoutSuccess = async (req, res) => {
 
             await order.save();
 
-            // Використання купона
             if (session.metadata.couponCode) {
                 await Coupon.findOneAndUpdate(
                     { code: session.metadata.couponCode },

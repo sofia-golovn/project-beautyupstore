@@ -53,18 +53,20 @@ export const useCartStore = create(
                 }
             },
 
-            removeFromCart: async (productId) => {
-                try {
-                    await axios.delete(`/cart`, { data: { productId } });
-                    set((prevState) => ({
-                        cart: prevState.cart.filter((item) => item._id !== productId),
-                    }));
-                    get().calculateTotals();
-                    toast.success("Removed from cart");
-                } catch (error) {
-                    toast.error("Error removing item");
+            removeFromCart: (productId) => {
+            set((state) => {
+                const newCart = state.cart.filter((item) => item._id !== productId);
+                const newTotal = newCart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+                let activeCoupon = state.coupon;
+                if (activeCoupon && newTotal < activeCoupon.minOrderAmount) {
+                    activeCoupon = null; 
+                    toast.error("Coupon removed: order amount is too low");
                 }
-            },
+
+                return { cart: newCart, total: newTotal, coupon: activeCoupon };
+            });
+        },
 
             updateQuantity: async (productId, quantity) => {
                 if (quantity <= 0) {
