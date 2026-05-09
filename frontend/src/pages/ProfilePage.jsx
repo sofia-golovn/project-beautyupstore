@@ -14,14 +14,16 @@ const ProfilePage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); 
 
     useEffect(() => {
-    if (user && !user.name) {
-        checkAuth();
-    }
+        if (user && !user.name) {
+            checkAuth();
+        }
 
-    if (user?._id) {
-        getUserOrders(1);
-    }
+        if (user?._id) {
+            getUserOrders(1);
+        }
     }, [user?._id, user?.name, checkAuth, getUserOrders]);
+
+    const confirmedOrders = orders.filter(order => order.status !== "Pending");
 
     const handlePageChange = (page) => {
         getUserOrders(page);
@@ -81,9 +83,14 @@ const ProfilePage = () => {
             </div>
 
             <div className="space-y-8 sm:space-y-12">
-                <div className="flex items-center gap-3">
-                    <Package className="text-neutral-200" size={24} />
-                    <h2 className="text-2xl font-serif text-neutral-800">Order History</h2>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Package className="text-neutral-200" size={24} />
+                        <h2 className="text-2xl font-serif text-neutral-800">Order History</h2>
+                    </div>
+                    <span className="text-neutral-400 text-[10px] uppercase tracking-widest font-bold">
+                        {confirmedOrders.length} {confirmedOrders.length === 1 ? 'Order' : 'Orders'}
+                    </span>
                 </div>
 
                 {loading ? (
@@ -91,9 +98,9 @@ const ProfilePage = () => {
                     tracking-widest animate-pulse">
                         Loading your history...
                     </div>
-                ) : orders.length > 0 ? (
+                ) : confirmedOrders.length > 0 ? (
                     <div className="space-y-12 sm:space-y-16">
-                        {orders.map((order) => (
+                        {confirmedOrders.map((order) => (
                             <div key={order._id} className="relative">
                                 <div className="flex flex-col lg:flex-row justify-between mb-6 gap-6">
                                     <div>
@@ -173,8 +180,6 @@ const ProfilePage = () => {
                                                 <MapPin size={18} className="text-[#74090A] flex-shrink-0 mt-1" />
                                                 <div className="text-sm">
                                                     <div className="font-bold text-neutral-800 mb-1 uppercase text-[9px] tracking-widest">Shipping To</div>
-                                                    {/* Ім'я отримувача зі Stripe, якщо воно було збережене */}
-                                                    {order.shippingName && <p className="font-bold text-neutral-700 text-xs">{order.shippingName}</p>}
                                                     <p className="text-neutral-500 leading-relaxed font-light">{order.shippingAddress}</p>
                                                     {order.phone && <p className="text-[#74090A] font-bold text-[10px] mt-2">{order.phone}</p>}
                                                 </div>
@@ -213,7 +218,7 @@ const ProfilePage = () => {
                     </div>
                 ) : (
                     <div className="py-32 text-center border-2 border-dashed border-neutral-100 rounded-[40px]">
-                        <p className="text-neutral-400 font-serif italic">No orders yet.</p>
+                        <p className="text-neutral-400 font-serif italic">No confirmed orders yet.</p>
                     </div>
                 )}
             </div>

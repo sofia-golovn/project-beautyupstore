@@ -61,26 +61,28 @@ export const updateOrderStatus = async (req, res) => {
 
 export const getUserOrders = async (req, res) => {
     try {
-
         const page = parseInt(req.query.page) || 1;
-        const limit = 12;
+        const limit = 5; 
         const skip = (page - 1) * limit;
 
-        const totalOrders = await Order.countDocuments({ user: req.user._id });
+        const query = { 
+            user: req.user._id, 
+            status: { $ne: "Pending" } 
+        };
 
-        const orders = await Order.find({ user: req.user._id })
-            .populate("products.product", "name image price description") 
+        const totalOrders = await Order.countDocuments(query);
+        const orders = await Order.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .populate("products.product", "name image price");
 
         res.json({
-            orders: orders || [],
-            totalPages: Math.ceil(totalOrders / limit) || 1,
-            currentPage: page
+            orders,
+            totalPages: Math.ceil(totalOrders / limit),
+            currentPage: page,
         });
     } catch (error) {
-        console.error("Error in getUserOrders:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
