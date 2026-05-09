@@ -8,6 +8,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [itemsPerPage, setItemsPerPage] = useState(4);
     
+    // Стан для відстеження свайпів
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
 
@@ -15,7 +16,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { addToCart } = useCartStore();
 
-    const minSwipeDistance = 50;
+    const minSwipeDistance = 30; 
 
     useEffect(() => {
         const handleResize = () => {
@@ -89,7 +90,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
                         onTouchEnd={onTouchEnd}
                     >
                         <div
-                            className='flex transition-transform duration-700 ease-[cubic-bezier(0.45,0,0.55,1)]'
+                            className='flex transition-transform duration-300 ease-out'
                             style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
                         >
                             {featuredProducts?.map((product) => (
@@ -142,12 +143,10 @@ const FeaturedProducts = ({ featuredProducts }) => {
 
                 <div className='mt-10 md:mt-16 text-center'>
                     <Link to='/catalog' className='inline-block group'>
-                        <span className='font-sans text-[10px] md:text-xs uppercase tracking-[0.3em] 
-                        text-[#74090A] group-hover:opacity-80 transition-opacity duration-300 font-medium'>
+                        <span className='font-sans text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#74090A] group-hover:opacity-80 transition-opacity duration-300 font-medium'>
                             See all
                         </span>
-                        <div className='h-[1px] w-full bg-[#74090A]/40 mt-1.5 
-                        group-hover:bg-[#74090A] transition-all duration-500'></div>
+                        <div className='h-[1px] w-full bg-[#74090A]/40 mt-1.5 group-hover:bg-[#74090A] transition-all duration-500'></div>
                     </Link>
                 </div>
             </div>
