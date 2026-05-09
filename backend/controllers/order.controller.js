@@ -8,7 +8,14 @@ export const getAllOrders = async (req, res) => {
         
         const { status } = req.query; 
         
-        const query = status && status !== "All" ? { status } : {};
+        let query = {};
+
+        if (status && status !== "All") {
+            query.status = status;
+        } else {
+
+            query.status = { $ne: "Pending" };
+        }
 
         const totalOrders = await Order.countDocuments(query);
         const orders = await Order.find(query)
@@ -18,7 +25,11 @@ export const getAllOrders = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        res.json({ orders, totalPages: Math.ceil(totalOrders / limit), currentPage: page });
+        res.json({ 
+            orders, 
+            totalPages: Math.ceil(totalOrders / limit), 
+            currentPage: page 
+        });
     } catch (error) {
         res.status(500).json({ message: "Error fetching orders", error: error.message });
     }

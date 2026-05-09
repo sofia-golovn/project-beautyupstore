@@ -16,18 +16,22 @@ export const createCheckoutSession = async (req, res) => {
             if (coupon) discountPercent = coupon.discountPercentage;
         }
 
+        let totalOrderAmount = 0;
+
         const lineItems = products.map((product) => {
             const amount = Math.round(product.price * 100);
             const finalAmount = discountPercent > 0 
                 ? Math.round(amount * (1 - discountPercent / 100)) 
                 : amount;
 
+            totalOrderAmount += (finalAmount / 100) * (product.quantity || 1);
+
             return {
                 price_data: {
                     currency: "usd",
                     product_data: { 
                         name: product.name, 
-                        images: [product.image] 
+                        images: product.image ? [product.image] : [] 
                     },
                     unit_amount: finalAmount,
                 },
@@ -35,17 +39,20 @@ export const createCheckoutSession = async (req, res) => {
             };
         });
 
+        // 1. Створюємо замовлення як "Pending" (Чернетка)
+        // Воно збережеться в базі, але завдяки фільтрації в getAllOrders 
+        // адмін його не побачить, поки статус не зміниться на "Paid"
         const newOrder = new Order({
             user: req.user._id,
             products: products.map((p) => ({
-                product: p._id,
+                product: p._id || p.id,
                 quantity: p.quantity,
                 price: p.price,
             })),
-            totalAmount: 0,
-            stripeSessionId: "temporary_id_" + Date.now(), 
+            totalAmount: totalOrderAmount,
+            stripeSessionId: "temp_" + Date.now(), 
             phone: "Pending", 
-            status: "Paid", 
+            status: "Pending", // ВАЖЛИВО: статус Pending
         });
 
         await newOrder.save();
@@ -63,13 +70,13 @@ export const createCheckoutSession = async (req, res) => {
             cancel_url: `${process.env.CLIENT_URL}/purchase-cancel`,
             metadata: {
                 userId: req.user._id.toString(),
-                orderId: newOrder._id.toString(),
+                orderId: newOrder._id.toString(), // Передаємо тільки ID, щоб не було помилок ліміту символів
                 couponCode: couponCode || "",
             },
         });
 
+        // Оновлюємо тимчасовий ID на реальний ID сесії Stripe
         newOrder.stripeSessionId = session.id;
-        newOrder.totalAmount = session.amount_total / 100;
         await newOrder.save();
 
         res.status(200).json({ id: session.id, url: session.url });
@@ -90,39 +97,42 @@ export const checkoutSuccess = async (req, res) => {
             const orderId = session.metadata.orderId;
             const order = await Order.findById(orderId);
 
-            if (!order) return res.status(404).json({ message: "Order not found" });
+            if (!order) {
+                return res.status(404).json({ message: "Order not found" });
+            }
 
+            // Якщо замовлення вже оброблено, просто повертаємо успіх
+            if (order.status === "Paid") {
+                return res.status(200).json({ success: true, orderId: order._id });
+            }
 
             const shipping = session.shipping_details;
             const customer = session.customer_details;
-
             const addr = shipping?.address || customer?.address;
 
             let addressStr = "Address not specified";
-
             if (addr) {
-                const parts = [
+                addressStr = [
                     addr.line1,
                     addr.line2,
                     addr.city,
                     addr.state,
                     addr.postal_code,
                     addr.country
-                ].filter(Boolean); 
-
-                if (parts.length > 0) {
-                    addressStr = parts.join(", ");
-                }
+                ].filter(Boolean).join(", ");
             }
 
             const stripeName = shipping?.name || customer?.name || "Client";
-            order.shippingAddress = `${stripeName} | ${addressStr}`;
 
-            order.status = "Paid";
+            // ОНОВЛЕННЯ: Тепер замовлення стає "Paid" і з'являється в адмінці
+            order.shippingAddress = `${stripeName} | ${addressStr}`;
             order.phone = customer?.phone || shipping?.phone || "No phone";
+            order.status = "Paid";
+            order.stripeSessionId = sessionId;
 
             await order.save();
 
+            // Використання купона
             if (session.metadata.couponCode) {
                 await Coupon.findOneAndUpdate(
                     { code: session.metadata.couponCode },
@@ -131,6 +141,8 @@ export const checkoutSuccess = async (req, res) => {
             }
 
             res.status(200).json({ success: true, orderId: order._id });
+        } else {
+            res.status(400).json({ message: "Payment not confirmed" });
         }
     } catch (error) {
         console.error("CRITICAL ERROR IN CHECKOUT SUCCESS:", error);
