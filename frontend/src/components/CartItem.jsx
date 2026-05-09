@@ -6,6 +6,15 @@ const CartItem = ({ item, onOpenModal }) => {
     const lineTotal = (Number(item.price) || 0) * (item.quantity || 1);
     const openDetails = () => onOpenModal?.(item);
 
+    const handleDecrement = (e) => {
+        e.stopPropagation();
+        if (item.quantity > 1) {
+            updateQuantity(item._id, item.quantity - 1);
+        } else {
+            removeFromCart(item._id);
+        }
+    };
+
     return (
          <div
             className={`group relative flex flex-col h-full ${onOpenModal ? "cursor-pointer" : ""}`}
@@ -35,14 +44,14 @@ const CartItem = ({ item, onOpenModal }) => {
                         e.stopPropagation();
                         removeFromCart(item._id);
                     }}
-                    className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-md rounded-full text-neutral-400 hover:text-[#74090A] transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                    className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-md rounded-full text-neutral-400 hover:text-[#74090A] transition-all shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     aria-label="Remove from bag"
                 >
                     <Trash2 size={14} />
                 </button>
             </div>
 
-                <div className="flex flex-col flex-grow mb-3">
+            <div className="flex flex-col flex-grow mb-3">
                 <span className="text-[8px] uppercase tracking-widest text-[#74090A] font-bold block mb-1">
                     {item.category}
                 </span>
@@ -54,7 +63,8 @@ const CartItem = ({ item, onOpenModal }) => {
                     Qty {item.quantity} · ${lineTotal.toFixed(2)} total
                 </p>
             </div>
-             <div
+            
+            <div
                 className="flex items-center justify-center gap-1 rounded-lg border border-neutral-100 bg-neutral-50/80 py-2 px-1"
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
@@ -62,12 +72,8 @@ const CartItem = ({ item, onOpenModal }) => {
             >
                 <button
                     type="button"
-                    className="p-2 text-neutral-400 hover:text-[#74090A] transition-colors disabled:opacity-30 rounded-md"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        updateQuantity(item._id, item.quantity - 1);
-                    }}
-                    disabled={item.quantity <= 1}
+                    className="p-2 text-neutral-400 hover:text-[#74090A] transition-colors rounded-md"
+                    onClick={handleDecrement}
                 >
                     <Minus size={14} strokeWidth={2.5} />
                 </button>

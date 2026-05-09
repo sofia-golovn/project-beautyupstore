@@ -37,7 +37,7 @@ const EmptyWishlistUI = () => (
 const WishlistPage = () => {
     const { wishlist, removeFromWishlist } = useWishlistStore();
     const { addToCart } = useCartStore();
-     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
@@ -104,7 +104,7 @@ const WishlistPage = () => {
                                                         removeFromWishlist(product._id);
                                                     }}
                                                     className="absolute top-3 right-3 p-2 bg-white/80 
-                                                    backdrop-blur-md rounded-full text-neutral-400 hover:text-[#74090A] transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                                                    backdrop-blur-md rounded-full text-neutral-400 hover:text-[#74090A] transition-all shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>
