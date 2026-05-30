@@ -118,35 +118,6 @@ export const useProductStore = create((set, get) => ({
     }
     },
 
-    createCategory: async (categoryName) => {
-        set({ loading: true });
-        try {
-        const res = await axios.post("/categories", { name: categoryName });
-        
-        set((state) => ({
-            categories: [...state.categories, res.data.name],
-            loading: false,
-        }));
-        toast.success("Category created successfully");
-    } catch (error) {
-        set({ loading: false });
-        toast.error(error.response?.data?.message || "Error creating category");
-    }
-    },
-
-    deleteCategory: async (categoryName) => {
-        try {
-            await axios.delete(`/categories/${categoryName}`);
-            
-            set((state) => ({
-                categories: state.categories.filter((cat) => cat !== categoryName),
-            }));
-            toast.success("Category deleted");
-        } catch (error) {
-            toast.error("Failed to delete category");
-        }
-    },
-
     deleteProduct: async (productId) => {
         set({ loading: true });
         try {
