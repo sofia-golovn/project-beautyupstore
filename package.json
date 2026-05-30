@@ -22,6 +22,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "framer-motion": "^12.35.2",
+    "googleapis": "^173.0.0",
     "ioredis": "^5.9.3",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.577.0",

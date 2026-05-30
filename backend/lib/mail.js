@@ -1,33 +1,53 @@
-import nodemailer from "nodemailer";
+import { google } from "googleapis";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        type: "OAuth2",
-        user: process.env.SMTP_USER, 
-        clientId: process.env.OAUTH_CLIENT_ID,
-        clientSecret: process.env.OAUTH_CLIENT_SECRET,
-        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-    },
+const oAuth2Client = new google.auth.OAuth2(
+    process.env.OAUTH_CLIENT_ID,
+    process.env.OAUTH_CLIENT_SECRET,
+    "https://developers.google.com/oauthplayground" 
+);
+
+oAuth2Client.setCredentials({
+    refresh_token: process.env.OAUTH_REFRESH_TOKEN,
 });
 
+const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
+
 export const sendResetCodeEmail = async (email, code) => {
-    const mailOptions = {
-        from: `BeautyUp <${process.env.SMTP_USER}>`,
-        to: email,
-        subject: "Your Password Reset Code",
-        text: `Your reset code is: ${code}`,
-        html: `<h1>Password Reset</h1><p>Your code is: <strong>${code}</strong></p>`,
-    };
+    const subject = "Your Password Reset Code";
+    const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString("base64")}?=`;
+    
+    const messageParts = [
+        `From: BeautyUp <${process.env.SMTP_USER}>`,
+        `To: ${email}`,
+        "Content-Type: text/html; charset=utf-8",
+        "MIME-Version: 1.0",
+        `Subject: ${utf8Subject}`,
+        "",
+        "<h1>Password Reset</h1>",
+        `<p>Your code is: <strong>${code}</strong></p>`,
+    ];
+    
+    const message = messageParts.join("\n");
+
+    const encodedMessage = Buffer.from(message)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
 
     try {
-        await transporter.sendMail(mailOptions);
-        console.log("Email sent successfully via OAuth2");
+        await gmail.users.messages.send({
+            userId: "me",
+            requestBody: {
+                raw: encodedMessage,
+            },
+        });
+        console.log("Email sent successfully via Gmail HTTP API!");
     } catch (error) {
-        console.error("Nodemailer OAuth2 Error:", error);
+        console.error("Gmail API Error:", error);
         throw error;
     }
 };
