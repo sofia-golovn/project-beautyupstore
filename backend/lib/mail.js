@@ -1,28 +1,33 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        type: "OAuth2",
+        user: process.env.SMTP_USER, 
+        clientId: process.env.OAUTH_CLIENT_ID,
+        clientSecret: process.env.OAUTH_CLIENT_SECRET,
+        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+    },
+});
 
 export const sendResetCodeEmail = async (email, code) => {
+    const mailOptions = {
+        from: `BeautyUp <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: "Your Password Reset Code",
+        text: `Your reset code is: ${code}`,
+        html: `<h1>Password Reset</h1><p>Your code is: <strong>${code}</strong></p>`,
+    };
+
     try {
-        const { data, error } = await resend.emails.send({
-            from: "BeautyUp <onboarding@resend.dev>",
-            to: email,
-            subject: "Your Password Reset Code",
-            text: `Your reset code is: ${code}`,
-            html: `<h1>Password Reset</h1><p>Your code is: <strong>${code}</strong></p>`,
-        });
-
-        if (error) {
-            console.error("Resend API Error:", error);
-            throw new Error(error.message);
-        }
-
-        console.log("Email sent successfully via Resend:", data.id);
+        await transporter.sendMail(mailOptions);
+        console.log("Email sent successfully via OAuth2");
     } catch (error) {
-        console.error("Resend Catch Error:", error);
+        console.error("Nodemailer OAuth2 Error:", error);
         throw error;
     }
 };
