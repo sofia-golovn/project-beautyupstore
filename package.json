@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon backend/server.js",
     "start": "node backend/server.js",
-    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
+    "test": "vitest run --environment jsdom"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +37,10 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "jest": "^30.4.2",
+    "jsdom": "^29.1.1",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.8"
   }
 }
