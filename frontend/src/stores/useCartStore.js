@@ -70,7 +70,7 @@ export const useCartStore = create(
                         return { cart: newCart, total: newTotal, coupon: activeCoupon };
                     });
 
-                    toast.success("Item removed from cart");
+                    toast.success("Removed from cart");
                 } catch (error) {
                     console.error("Error removing item from cart:", error);
                     toast.error(error.response?.data?.message || "Failed to remove item from cart");
